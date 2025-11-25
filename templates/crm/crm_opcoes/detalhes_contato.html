@@ -1,0 +1,83 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% if contato %}Editar Contato{% else %}Adicionar Contato{% endif %}</title>
+<link rel="icon" href="{% static 'img/grs-logo.png' %}" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Inter', sans-serif; min-height:100vh; background: linear-gradient(135deg, #0d0d0d, #1c1c2e); display:flex; justify-content:center; align-items:flex-start; padding:20px; }
+.container { background:#1c1c1c; border-radius:16px; padding:30px; width:100%; max-width:700px; box-shadow:0 15px 35px rgba(0,0,0,0.6),0 0 20px rgba(255,193,7,0.2); border-top:5px solid #FFC107; color:#fff; }
+h1 { font-size:28px; font-weight:600; margin-bottom:25px; color:#fff; }
+.header-info { display:grid; gap:15px; margin-bottom:25px; }
+.header-info label { font-weight:600; margin-bottom:5px; color:#ffc; display:block; }
+.header-info input, .header-info textarea { padding:10px; border-radius:10px; border:none; background:#2a2a2a; color:#fff; font-size:0.95rem; width:100%; box-shadow: inset 0 0 5px rgba(0,0,0,0.5); transition:all 0.3s; }
+.header-info input:focus, .header-info textarea:focus { border:1px solid #FFC107; background:#333; outline:none; }
+button { width:100%; padding:14px; background:linear-gradient(135deg,#FFC107,#ffdb4d); color:#111; border:none; border-radius:10px; font-size:16px; cursor:pointer; font-weight:600; box-shadow:0 5px 15px rgba(0,0,0,0.3); transition:all 0.3s ease; margin-bottom:15px; }
+button:hover { background:linear-gradient(135deg,#e0a800,#ffd633); transform:scale(1.03); box-shadow:0 8px 20px rgba(0,0,0,0.4); }
+a.btn { display:inline-block; padding:12px 20px; background:linear-gradient(135deg,#FFC107,#ffdb4d); color:#111; border-radius:10px; font-weight:600; text-decoration:none; box-shadow:0 5px 15px rgba(0,0,0,0.3); transition:all 0.3s ease; margin-bottom:15px; }
+a.btn:hover { background:linear-gradient(135deg,#e0a800,#ffd633); transform:scale(1.03); box-shadow:0 8px 20px rgba(0,0,0,0.4); }
+a { color:#FFC107; text-decoration:none; transition:color 0.3s; }
+a:hover { text-decoration:underline; color:#ffdb4d; }
+.error { color:#d9534f; font-weight:bold; margin-bottom:15px; }
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>{% if contato %}Editar Contato{% else %}Adicionar Contato{% endif %}</h1>
+
+    {% if erro %}<p class="error">{{ erro }}</p>{% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="header-info">
+            <div>
+                <label for="nome">Nome</label>
+                <input type="text" id="nome" name="nome" value="{{ contato.name|default_if_none:'' }}" required>
+            </div>
+            <div>
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" value="{{ contato.email|default_if_none:'' }}">
+            </div>
+            <div>
+                <label for="cargo">Cargo</label>
+                <input type="text" id="cargo" name="cargo" value="{{ contato.role|default_if_none:'' }}">
+            </div>
+            <div>
+                <label for="empresa">Empresa</label>
+                <input list="empresas" id="empresa" name="empresa" value="{{ contato.company.name|default_if_none:'' }}" required>
+                <datalist id="empresas">
+                    {% for empresa in empresas %}
+                        <option value="{{ empresa.name }}">
+                    {% endfor %}
+                </datalist>
+            </div>
+            <div>
+                <label for="telefone">Telefone</label>
+                <input type="text" id="telefone" name="telefone" value="{{ contato.telefone|default_if_none:'' }}">
+            </div>
+            <div>
+                <label for="notas">Notas</label>
+                <textarea id="notas" name="notas">{{ contato.notas|default_if_none:'' }}</textarea>
+            </div>
+        </div>
+
+        <button type="submit">{% if contato %}Salvar Alterações{% else %}Adicionar Contato{% endif %}</button>
+    </form>
+
+    <!-- Botão Incluir Oportunidade -->
+        {% if contato and contato.id %}
+            <a href="{% url 'escolha:detalhes_oportunidade' contato.id %}" class="btn">➕ Incluir Oportunidade</a>
+        {% else %}
+            <button class="btn" style="cursor:not-allowed; opacity:0.6;" disabled>
+                ➕ Salve o contato antes de adicionar uma oportunidade
+            </button>
+        {% endif %}
+
+    <a href="{% url 'escolha:contatos' %}">← Voltar para Contatos</a>
+</div>
+</body>
+</html>

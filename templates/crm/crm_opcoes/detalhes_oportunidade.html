@@ -1,0 +1,558 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Detalhes da Oportunidade</title>
+<link rel="icon" href="{% static 'img/grs-logo.png' %}" type="image/png" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+<style>
+/* reset / base */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+  background:#f4f6f8;
+  color:#222;
+  padding:18px;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+}
+
+/* layout geral: empurra mais para a esquerda */
+.container-area{
+  width:100%;
+  max-width:1400px;
+  display:flex;
+  gap:18px;
+  align-items:flex-start;
+  justify-content:flex-start;
+}
+
+/* coluna principal — ligeiramente maior, mas não ocupando toda largura */
+.container{
+  background:#fff;
+  border-radius:10px;
+  width:930px; /* fixo pra empurrar à esquerda */
+  padding:18px;
+  box-shadow:0 6px 20px rgba(16,24,40,0.06);
+  min-height:420px;
+}
+
+/* barra lateral direita */
+.sidebar{
+  width:280px;
+  background:#fff;
+  border-radius:10px;
+  padding:14px;
+  box-shadow:0 6px 20px rgba(16,24,40,0.06);
+  height:fit-content;
+  align-self:flex-start;
+}
+
+/* título */
+h1{font-size:20px;margin-bottom:12px;color:#111;font-weight:600;}
+
+/* header top inputs */
+.header-info{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:14px}
+.header-info>div{flex:1 1 180px;min-width:160px}
+.header-info label{display:block;font-size:12px;color:#555;margin-bottom:6px;font-weight:600}
+.header-info input,.header-info select{width:100%;padding:8px;border-radius:8px;border:1px solid #e3e7ee;background:#fbfdff;font-size:14px}
+
+/* tabs */
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.tabs button{padding:7px 10px;border-radius:8px;border:1px solid #e3e7ee;background:#f8fafc;font-size:13px;cursor:pointer}
+.tabs button.active{background:#0b74ff;color:#fff;border-color:#0b74ff}
+
+/* tab content */
+.tab-content{display:none;padding-top:10px}
+.tab-content.active{display:block}
+.form-group{margin-bottom:10px}
+.form-group label{display:block;font-size:13px;color:#444;margin-bottom:6px;font-weight:600}
+.form-group input, .form-group select, .form-group textarea{width:100%;padding:8px;border-radius:8px;border:1px solid #e3e7ee;background:#fbfdff;font-size:14px}
+textarea{min-height:92px;resize:vertical}
+
+/* buttons principais */
+.save-button{display:inline-block;width:100%;padding:10px;border-radius:8px;border:none;background:#16a34a;color:#fff;font-weight:600;margin-top:8px;cursor:pointer}
+.back-button{display:inline-block;padding:8px 12px;background:#0b74ff;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;margin-bottom:8px}
+
+/* sidebar buttons */
+.sidebar h3{font-size:14px;margin-bottom:8px;color:#222}
+.sidebar .action{display:block;padding:10px;border-radius:8px;text-align:center;text-decoration:none;color:#111;font-weight:600;margin-bottom:8px;cursor:pointer;border:1px solid #e6edf3}
+.sidebar .action.edit{background:#0b74ff;color:#fff;border:none}
+.sidebar .action.task{background:#ffecb5;color:#241a00}
+.sidebar .action.view{background:#d0f2ff;color:#022f38}
+.sidebar .action.danger{background:#ffe6e9;color:#7a0710}
+
+/* painel inferior associado à sidebar (aparece abaixo do formulário principal) */
+.panel{
+  margin-top:12px;
+  background:#fff;
+  border-radius:10px;
+  padding:12px;
+  box-shadow:0 6px 20px rgba(16,24,40,0.04);
+}
+
+/* listas e resultados */
+.task-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+.task-item{padding:10px;border-radius:8px;border:1px solid #eef4fb;background:#fbfeff;font-size:14px;display:flex;justify-content:space-between;align-items:center}
+.task-item small{color:#666;font-size:12px}
+
+/* compact UI tweaks */
+label.small{font-size:12px;color:#666;font-weight:600}
+.row{display:flex;gap:10px}
+.col{flex:1}
+
+/* reduzir espaços em branco da página (solicitado) */
+body, .container-area, .container, .sidebar { margin-bottom: 0; }
+
+/* responsividade */
+@media(max-width:1180px){
+  .container{width:100%;max-width:720px}
+  .sidebar{display:none}
+  .container-area{padding:0 10px}
+}
+
+</style>
+</head>
+<body>
+<div class="container-area">
+
+  <!-- COLUNA PRINCIPAL -->
+  <div class="container">
+    <a href="{% url 'escolha:oportunidades' %}" class="back-button">← Voltar</a>
+    <h1>Detalhes da Oportunidade</h1>
+
+    <!-- Form principal (mantive todos os names originais) -->
+    <form method="post" id="oportunidade-form">
+      {% csrf_token %}
+      <input type="hidden" name="active_tab" id="active_tab" value="{{ active_tab|default:'fases' }}">
+      <div class="header-info">
+        <div>
+          <label for="nome">Nome</label>
+          <input type="text" id="nome" name="nome" value="{{ oportunidade.contato.name|default_if_none:'' }}" required>
+        </div>
+        <div>
+          <label for="empresa">Empresa</label>
+          <input list="empresas" id="empresa" name="empresa" value="{{ oportunidade.company.name|default_if_none:'' }}" required>
+          <datalist id="empresas">
+            {% for empresa in empresas %}<option value="{{ empresa.name }}">{% endfor %}
+          </datalist>
+        </div>
+        <div>
+          <label for="vendedor">Vendedor (Admin)</label>
+          <input type="text" id="vendedor" name="vendedor" value="{{ user.username }}" readonly>
+        </div>
+        <div>
+          <label for="solucao">Solução</label>
+          <select id="solucao" name="solucao">
+            <option value="">Selecione</option>
+            <option value="Consultoria" {% if oportunidade.solucao == "Consultoria" %}selected{% endif %}>Unidade de Consultoria</option>
+            <option value="Facilities" {% if oportunidade.solucao == "Facilities" %}selected{% endif %}>Unidade de Facilities</option>
+            <option value="Tecnologia" {% if oportunidade.solucao == "Tecnologia" %}selected{% endif %}>Unidade de Tecnologia</option>
+          </select>
+        </div>
+        <div>
+          <label for="origem">Origem</label>
+          <select id="origem" name="origem">
+            <option value="">Selecione</option>
+            <option value="Telemarketing" {% if oportunidade.origem == "Telemarketing" %}selected{% endif %}>Telemarketing</option>
+            <option value="CoteiBem" {% if oportunidade.origem == "CoteiBem" %}selected{% endif %}>CoteiBem</option>
+            <option value="EmailMKT" {% if oportunidade.origem == "EmailMKT" %}selected{% endif %}>Email MKT</option>
+            <option value="Google" {% if oportunidade.origem == "Google" %}selected{% endif %}>Google</option>
+            <option value="Indicacao" {% if oportunidade.origem == "Indicacao" %}selected{% endif %}>Indicação</option>
+            <option value="Cliente" {% if oportunidade.origem == "Cliente" %}selected{% endif %}>Já é cliente</option>
+            <option value="Linkedin" {% if oportunidade.origem == "Linkedin" %}selected{% endif %}>Linkedin</option>
+            <option value="Nimbi" {% if oportunidade.origem == "Nimbi" %}selected{% endif %}>Nimbi</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- ABAS -->
+      <div class="tabs" role="tablist" aria-label="Abas oportunidade">
+        <button type="button" class="tab-button {% if active_tab|default:'fases' == 'fases' %}active{% endif %}" data-tab="fases">Fases/Status</button>
+        <button type="button" class="tab-button {% if active_tab == 'ticket' %}active{% endif %}" data-tab="ticket">Ticket</button>
+        <button type="button" class="tab-button {% if active_tab == 'previsao' %}active{% endif %}" data-tab="previsao">Previsão</button>
+        <button type="button" class="tab-button {% if active_tab == 'temperatura' %}active{% endif %}" data-tab="temperatura">Temperatura</button>
+        <button type="button" class="tab-button {% if active_tab == 'email' %}active{% endif %}" data-tab="email">E-mail</button>
+        <button type="button" class="tab-button {% if active_tab == 'observacoes' %}active{% endif %}" data-tab="observacoes">Observações</button>
+        <button type="button" class="tab-button {% if active_tab == 'outras' %}active{% endif %}" data-tab="outras">Outras Info</button>
+        <button type="button" class="tab-button {% if active_tab == 'envolvidos' %}active{% endif %}" data-tab="envolvidos">Envolvidos</button>
+        <button type="button" class="tab-button {% if active_tab == 'caracteristica' %}active{% endif %}" data-tab="caracteristica">Característica</button>
+      </div>
+
+      <!-- Conteúdo das abas — mantive tudo exatamente como antes -->
+      <div id="fases" class="tab-content {% if active_tab|default:'fases' == 'fases' %}active{% endif %}">
+        <div class="form-group">
+          <label for="stage">Fase Atual</label>
+          <select id="stage" name="stage">
+            <option value="">Selecione</option>
+            <option value="prospect" {% if oportunidade.stage == "prospect" %}selected{% endif %}>Prospect</option>
+            <option value="qualificacao" {% if oportunidade.stage == "qualificacao" %}selected{% endif %}>Qualificação</option>
+            <option value="apresentacao" {% if oportunidade.stage == "apresentacao" %}selected{% endif %}>Apresentação</option>
+            <option value="proposta" {% if oportunidade.stage == "proposta" %}selected{% endif %}>Proposta</option>
+            <option value="negociacao" {% if oportunidade.stage == "negociacao" %}selected{% endif %}>Negociação</option>
+            <option value="conclusao" {% if oportunidade.stage == "conclusao" %}selected{% endif %}>Conclusão</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="status">Status</label>
+          <select id="status" name="status" onchange="toggleMotivoConclusao()">
+            <option value="Ativo" {% if oportunidade.status == "Ativo" %}selected{% endif %}>Ativo</option>
+            <option value="Cancelado" {% if oportunidade.status == "Cancelado" %}selected{% endif %}>Cancelado</option>
+            <option value="Conquistado" {% if oportunidade.status == "Conquistado" %}selected{% endif %}>Conquistado</option>
+            <option value="Perdido" {% if oportunidade.status == "Perdido" %}selected{% endif %}>Perdido</option>
+            <option value="Suspenso" {% if oportunidade.status == "Suspenso" %}selected{% endif %}>Suspenso</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="motivo-conclusao-container" style="display:none">
+          <label for="motivo_conclusao">Motivo da Conclusão</label>
+          <select id="motivo_conclusao" name="motivo_conclusao">
+            <option value="">Selecione</option>
+            <option value="01" {% if oportunidade.motivo_conclusao == "01" %}selected{% endif %}>Não quis avançar</option>
+            <option value="02" {% if oportunidade.motivo_conclusao == "02" %}selected{% endif %}>Não atende critérios</option>
+            <option value="03" {% if oportunidade.motivo_conclusao == "03" %}selected{% endif %}>Concorrente ganhou</option>
+            <option value="04" {% if oportunidade.motivo_conclusao == "04" %}selected{% endif %}>Outro motivo</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="ticket" class="tab-content {% if active_tab == 'ticket' %}active{% endif %}">
+        <div class="form-group">
+          <label for="ticket_numero">Número do Ticket</label>
+          <input type="text" id="ticket_numero" name="ticket_numero" value="{{ oportunidade.ticket_numero }}">
+        </div>
+      </div>
+
+      <div id="previsao" class="tab-content {% if active_tab == 'previsao' %}active{% endif %}">
+        <div class="form-group">
+          <label for="data_previsao">Data de Previsão</label>
+          <input type="date" id="data_previsao" name="data_previsao" value="{{ oportunidade.data_previsao }}">
+        </div>
+        <div class="form-group">
+          <label for="value">Valor Estimado</label>
+          <input type="number" id="value" name="value" value="{{ oportunidade.value }}">
+        </div>
+      </div>
+
+      <div id="temperatura" class="tab-content {% if active_tab == 'temperatura' %}active{% endif %}">
+        <div class="form-group">
+          <label for="temperatura">Temperatura</label>
+          <select id="temperatura" name="temperatura">
+            <option value="quente" {% if oportunidade.temperatura == "quente" %}selected{% endif %}>Quente</option>
+            <option value="morno" {% if oportunidade.temperatura == "morno" %}selected{% endif %}>Morno</option>
+            <option value="frio" {% if oportunidade.temperatura == "frio" %}selected{% endif %}>Frio</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="email" class="tab-content {% if active_tab == 'email' %}active{% endif %}">
+        <div class="form-group">
+          <label for="email_enviado">E-mail Enviado?</label>
+          <select id="email_enviado" name="email_enviado">
+            <option value="sim" {% if oportunidade.email_enviado == "sim" %}selected{% endif %}>Sim</option>
+            <option value="nao" {% if oportunidade.email_enviado == "nao" %}selected{% endif %}>Não</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="observacoes" class="tab-content {% if active_tab == 'observacoes' %}active{% endif %}">
+        <div class="form-group">
+          <label for="observacoes">Observações</label>
+          <textarea id="observacoes" name="observacoes">{{ oportunidade.observacoes }}</textarea>
+        </div>
+      </div>
+
+      <div id="outras" class="tab-content {% if active_tab == 'outras' %}active{% endif %}">
+        <div class="form-group">
+          <label for="outras_info">Outras Informações</label>
+          <textarea id="outras_info" name="outras_info">{{ oportunidade.outras_info }}</textarea>
+        </div>
+      </div>
+
+      <div id="envolvidos" class="tab-content {% if active_tab == 'envolvidos' %}active{% endif %}">
+        <div class="form-group">
+          <label for="envolvidos">Envolvidos</label>
+          <input type="text" id="envolvidos" name="envolvidos" value="{{ oportunidade.envolvidos }}">
+        </div>
+      </div>
+
+      <div id="caracteristica" class="tab-content {% if active_tab == 'caracteristica' %}active{% endif %}">
+        <div class="form-group">
+          <label for="caracteristica">Características</label>
+          <textarea id="caracteristica" name="caracteristica">{{ oportunidade.caracteristica }}</textarea>
+        </div>
+      </div>
+
+      <button type="submit" class="save-button">Salvar Oportunidade</button>
+    </form>
+
+    <!-- PAINEL DINÂMICO (aparece quando clica Criar/Ver Tarefas) -->
+    <div id="dynamic-panel" class="panel" style="display:none;margin-top:12px"></div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" aria-label="Ações da oportunidade">
+    <h3>Ações</h3>
+    <a class="action edit" id="open-edit" role="button">✏️ Editar</a>
+    <a class="action task" id="open-create-task" role="button">📝 Criar Tarefa</a>
+    <a class="action view"  role="button" onclick="abrirPopupTarefas()">📋 Ver Tarefas</a>
+    <a class="action danger" id="confirm-delete" role="button">🗑️ Excluir</a>
+
+    <!-- informação rápida -->
+    <div style="margin-top:8px;font-size:13px;color:#666">
+      <div><strong>ID:</strong> {{ oportunidade.id }}</div>
+      <div style="margin-top:6px"><strong>Empresa:</strong> {{ oportunidade.company.name }}</div>
+      <div style="margin-top:6px"><strong>Última atualização:</strong> {{ oportunidade.created_at }}</div>
+    </div>
+  </aside>
+
+</div>
+
+<script>
+/* abrir um popup */
+function abrirPopupTarefas() {
+    const oportunidadeId = "{{ oportunidade.id }}";
+
+    const largura = 1000;
+    const altura = 620;
+
+    const left = (screen.width - largura) / 2;
+    const top = (screen.height - altura) / 2;
+
+    const url = `/crm/tarefas/popup/${oportunidadeId}/`;
+
+    window.open(
+        url,
+        "PopupTarefas",
+        `width=${largura},height=${altura},left=${left},top=${top},resizable=yes,scrollbars=yes`
+    );
+}
+
+/* -------------------------
+   Utilidades CSRF / DOM
+   ------------------------- */
+function getCookie(name){
+  let v=null;
+  if(document.cookie && document.cookie !== ''){
+    const cookies=document.cookie.split(';');
+    for(let i=0;i<cookies.length;i++){
+      const c=cookies[i].trim();
+      if(c.substring(0,name.length+1)===name+'='){
+        v=decodeURIComponent(c.substring(name.length+1));
+        break;
+      }
+    }
+  }
+  return v;
+}
+
+/* -------------------------
+   Tabs (mantive lógica)
+   ------------------------- */
+const tabs = document.querySelectorAll('.tab-button');
+const contents = document.querySelectorAll('.tab-content');
+const activeTabInput = document.getElementById('active_tab');
+
+tabs.forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    tabs.forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    const target = tab.getAttribute('data-tab');
+    activeTabInput.value = target;
+    contents.forEach(c=>{ c.classList.remove('active'); if(c.id===target) c.classList.add('active'); });
+    document.getElementById(target).scrollIntoView({behavior:'smooth',block:'start'});
+  });
+});
+
+/* Mostrar motivo conclusão */
+function toggleMotivoConclusao(){
+  const status = document.getElementById('status');
+  const container = document.getElementById('motivo-conclusao-container');
+  if(!status || !container) return;
+  container.style.display = (status.value && status.value !== 'Ativo') ? 'block' : 'none';
+}
+document.addEventListener('DOMContentLoaded', toggleMotivoConclusao);
+
+/* -------------------------
+   Sidebar: painéis dinâmicos
+   ------------------------- */
+
+const dynamicPanel = document.getElementById('dynamic-panel');
+const criarBtn = document.getElementById('open-create-task');
+const verBtn = document.getElementById('open-view-tasks');
+const editBtn = document.getElementById('open-edit');
+const delBtn = document.getElementById('confirm-delete');
+
+const oportunidadeId = '{{ oportunidade.id|default:"" }}';
+
+function showPanel(html){
+  dynamicPanel.style.display='block';
+  dynamicPanel.innerHTML = html;
+  dynamicPanel.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+/* Abrir painel criar tarefa */
+criarBtn.addEventListener('click', ()=>{
+  const html = `
+    <h3 style="margin-bottom:10px">📝 Criar Tarefa</h3>
+    <form id="create-task-form">
+      <div class="form-group">
+        <label class="small">Descrição</label>
+        <input type="text" id="task-desc" name="description" required placeholder="Ex: Ligar para cliente">
+      </div>
+      <div class="form-group row">
+        <div class="col">
+          <label class="small">Data de Vencimento</label>
+          <input type="date" id="task-due" name="due_date" required>
+        </div>
+        <div class="col">
+          <label class="small">&nbsp;</label>
+          <button type="submit" style="width:100%;padding:9px;border-radius:8px;background:#0b74ff;color:#fff;border:none;cursor:pointer">Salvar Tarefa</button>
+        </div>
+      </div>
+      <div id="task-create-feedback" style="margin-top:8px;color:#111"></div>
+    </form>
+  `;
+  showPanel(html);
+
+  const form = document.getElementById('create-task-form');
+  form.addEventListener('submit', async (ev)=>{
+    ev.preventDefault();
+    const desc = document.getElementById('task-desc').value.trim();
+    const due = document.getElementById('task-due').value;
+    if(!desc || !due){ document.getElementById('task-create-feedback').textContent='Preencha descrição e data.'; return; }
+
+    try{
+      const res = await fetch('/crm/tarefas/create/', {
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ description: desc, due_date: due, opportunity_id: oportunidadeId })
+      });
+      if(res.ok){
+        const j = await res.json();
+        document.getElementById('task-create-feedback').style.color='green';
+        document.getElementById('task-create-feedback').textContent = j.message || 'Tarefa criada com sucesso.';
+        form.reset();
+      } else {
+        const text = await res.text();
+        document.getElementById('task-create-feedback').style.color='crimson';
+        document.getElementById('task-create-feedback').textContent = 'Erro criando tarefa: ' + (text || res.statusText);
+      }
+    }catch(err){
+      document.getElementById('task-create-feedback').style.color='crimson';
+      document.getElementById('task-create-feedback').textContent = 'Erro: ' + err.message;
+    }
+  });
+});
+
+/* Abrir painel ver tarefas */
+verBtn.addEventListener('click', async ()=>{
+  showPanel('<h3 style="margin-bottom:10px">📋 Tarefas</h3><div id="task-list-area">Carregando...</div>');
+
+  try{
+    const res = await fetch(`/crm/tarefas/list_by_opportunity/?opportunity_id=${oportunidadeId}`);
+    if(!res.ok){
+      document.getElementById('task-list-area').textContent = 'Não foi possível carregar tarefas.';
+      return;
+    }
+    const data = await res.json();
+    const tasks = data.tasks || [];
+    if(tasks.length === 0){
+      document.getElementById('task-list-area').innerHTML = '<div style="color:#666">Nenhuma tarefa encontrada.</div>';
+      return;
+    }
+
+    const ul = document.createElement('ul');
+    ul.className = 'task-list';
+    tasks.forEach(t=>{
+      const li = document.createElement('li');
+      li.className = 'task-item';
+      li.innerHTML = `<div>
+          <div style="font-weight:600">${escapeHtml(t.description)}</div>
+          <small>Venc: ${t.due_date}${t.done? ' · Concluída':''}</small>
+        </div>
+        <div><button data-id="${t.id}" class="mark-done" style="padding:6px 8px;border-radius:6px;border:none;background:#16a34a;color:#fff;cursor:pointer">OK</button></div>`;
+      ul.appendChild(li);
+    });
+
+    const container = document.getElementById('task-list-area');
+    container.innerHTML = '';
+    container.appendChild(ul);
+
+    document.querySelectorAll('.mark-done').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const id = btn.dataset.id;
+        try {
+          const r = await fetch(`/crm/tarefas/mark_done/`, {
+            method:'POST',
+            headers:{'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')},
+            body: JSON.stringify({task_id:id})
+          });
+          if(r.ok){
+            btn.textContent='✓';
+            btn.disabled=true;
+            btn.style.opacity=0.7;
+          } else {
+            alert('Erro ao marcar tarefa');
+          }
+        } catch(e){
+          alert('Erro: '+e.message);
+        }
+      });
+    });
+
+  }catch(err){
+    document.getElementById('task-list-area').textContent = 'Erro: ' + err.message;
+  }
+});
+
+editBtn.addEventListener('click', ()=>{
+  document.getElementById('nome').focus();
+  window.scrollTo({top:0,behavior:'smooth'});
+});
+
+delBtn.addEventListener('click', async ()=>{
+  if(!confirm('Confirmar exclusão desta oportunidade?')) return;
+  try{
+    const res = await fetch(`/oportunidade/excluir/{{ oportunidade.id }}/`, {
+      method:'POST',
+      headers:{'X-CSRFToken':getCookie('csrftoken')}
+    });
+    if(res.ok){
+      alert('Oportunidade excluída.');
+      window.location.href = '{% url "escolha:oportunidades" %}';
+    } else {
+      alert('Erro ao excluir.');
+    }
+  }catch(e){
+    alert('Erro: ' + e.message);
+  }
+});
+
+function escapeHtml(s){
+  if(!s) return '';
+  return s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
+}
+
+document.addEventListener('DOMContentLoaded', ()=>{ toggleMotivoConclusao(); });
+
+const form = document.getElementById('oportunidade-form');
+form.addEventListener('submit', (ev)=>{
+  const btn = document.querySelector('.save-button');
+  if(btn){
+    btn.disabled = true;
+    btn.textContent = 'Salvando...';
+  }
+});
+</script>
+
+</body>
+</html>

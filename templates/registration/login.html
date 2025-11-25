@@ -1,0 +1,305 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - GRS Serviços</title>
+    <link rel="icon" href="{% static 'img/grs-logo.png' %}" type="image/png">
+
+    <!-- Fonte -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Ícones Font Awesome OFICIAL -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background: #000000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* TOPBAR */
+        .topbar {
+            width: 100%;
+            height: 60px;
+            background: #0c0c0c;
+            border-bottom: 1px solid #1a1a1a;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 25px;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .topbar-left img {
+            width: 32px;
+            height: 32px;
+        }
+
+        .topbar-left span {
+            color: #fff;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 22px;
+        }
+
+        .icon-btn {
+            color: #e5e5e5;
+            font-size: 20px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .icon-btn:hover {
+            color: #fff;
+        }
+
+        /* USER BOX */
+        .user-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 12px;
+            border: 1px solid #1f1f1f;
+            border-radius: 8px;
+            background: #141414;
+        }
+
+        .user-box i {
+            font-size: 20px;
+            color: #ddd;
+        }
+
+        .user-box span {
+            font-size: 14px;
+            color: #bfbfbf;
+        }
+
+        /* MAIN CONTENT */
+        .main {
+            display: flex;
+            flex: 1;
+        }
+
+        /* LEFT SIDE (Slides) */
+        .left-side {
+            flex: 1.2;
+            position: relative;
+            overflow: hidden;
+            padding: 12px; /* ← Moldura interna */
+        }
+
+        .slide {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            right: 12px;
+            bottom: 12px;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 1s ease;
+            border-radius: 14px; /* opcional */
+        }
+
+        .slide.active {
+            opacity: 1;
+        }
+
+        .slide-text {
+            position: absolute;
+            left: 40px;
+            bottom: 18%;
+            font-size: 34px;
+            font-weight: 600;
+            color: #fff;
+            max-width: 450px;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+            line-height: 1.2;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+        }
+
+        .slide-text.active {
+            opacity: 1;
+        }
+
+        /* RIGHT SIDE (LOGIN) */
+        .right-side {
+            flex: 1;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 60px;
+        }
+
+        .login-box {
+            width: 100%;
+            max-width: 380px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(8px);
+            padding: 40px;
+            border-radius: 14px;
+        }
+
+        .logo-mini {
+            width: 90px;
+            margin: 0 auto 25px auto;
+            display: block;
+        }
+
+        h2 {
+            font-size: 26px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #b5b5b5;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            background: #131313;
+            border: 1px solid #2a2a2a;
+            border-radius: 10px;
+            font-size: 15px;
+            color: #eee;
+            margin-bottom: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            border-radius: 10px;
+            border: none;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            background: #fff;
+            color: #000;
+        }
+
+        a {
+            display: block;
+            margin-top: 15px;
+            text-align: center;
+            color: #cfcfcf;
+            text-decoration: none;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <div class="topbar-left">
+            <img src="{% static 'img/grs-logo.png' %}" alt="GRS">
+            <span>GRS Serviços</span>
+        </div>
+
+        <div class="topbar-right">
+            <i class="fa-solid fa-table-cells-large icon-btn"></i>
+            <i class="fa-solid fa-bell icon-btn"></i>
+            <i class="fa-solid fa-gear icon-btn"></i>
+
+            <div class="user-box">
+                <i class="fa-solid fa-user"></i>
+                <span>Usuário</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main">
+
+        <div class="left-side">
+
+            <div class="slide" style="background-image: url('https://www.grupoats.online/wp-content/uploads/2024/09/servico-de-limpeza-profissional-grupo-ats.png');"></div>
+            <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80');"></div>
+            <div class="slide" style="background-image: url('https://forseguranca.com.br/wp-content/uploads/2024/09/sistema-monitoramento-for-seguranca-campinas.jpg');"></div>
+            <div class="slide" style="background-image: url('https://gestaodesegurancaprivada.com.br/wp-content/uploads/Treinamento-de-Equipes.jpg');"></div>
+            <div class="slide" style="background-image: url('https://cfgsolucoes.com/wp-content/uploads/2021/07/sob-medida.png');"></div>
+
+            <div class="slide-text">Excelência em Limpeza Profissional.</div>
+            <div class="slide-text">Serviços de Manutenção Predial.</div>
+            <div class="slide-text">Monitoramento e Segurança 24h.</div>
+            <div class="slide-text">Equipe Treinada e Especializada.</div>
+            <div class="slide-text">Soluções Corporativas Sob Medida.</div>
+        </div>
+
+        <div class="right-side">
+            <div class="login-box">
+                <img src="{% static 'img/grs-logo.png' %}" class="logo-mini" alt="GRS">
+
+                <h2>Bem-vindo</h2>
+                <p class="subtitle">Acesse sua área administrativa</p>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="text" name="username" placeholder="Usuário" required>
+                    <input type="password" name="password" placeholder="Senha" required>
+                    <button type="submit">Entrar</button>
+                </form>
+
+                <a href="{% url 'password_reset' %}">Esqueceu sua senha?</a>
+                <a href="/solicitar-acesso/">Não tem acesso? Solicitar cadastro</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS SLIDES -->
+    <script>
+        let slides = document.querySelectorAll(".slide");
+        let texts = document.querySelectorAll(".slide-text");
+        let index = 0;
+
+        slides[index].classList.add("active");
+        texts[index].classList.add("active");
+
+        setInterval(() => {
+            slides[index].classList.remove("active");
+            texts[index].classList.remove("active");
+
+            index = (index + 1) % slides.length;
+
+            slides[index].classList.add("active");
+            texts[index].classList.add("active");
+
+        }, 3000);
+    </script>
+
+</body>
+
+</html>

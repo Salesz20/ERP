@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Tarefas da Oportunidade</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<style>
+  body{font-family:Arial;margin:0;padding:12px;background:#f5f7fa}
+  h1{text-align:center;margin-bottom:10px}
+  .board{display:flex;gap:14px;justify-content:center;align-items:flex-start}
+  .col{width:30%;min-height:200px;background:#fff;padding:12px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+  .col h2{margin:0 0 8px 0;text-align:center}
+  .list{min-height:60px}
+  .card{background:#f8fbff;border:1px solid #e6eef8;padding:10px;border-radius:6px;margin:8px 0;display:flex;justify-content:space-between;align-items:center;cursor:grab}
+  .card .meta{font-size:12px;color:#666;margin-left:8px}
+  .card .actions{display:flex;gap:6px}
+  .btn{border:none;padding:6px 8px;border-radius:6px;cursor:pointer}
+  .btn.ok{background:#16a34a;color:#fff}
+  .btn.edit{background:#0b74ff;color:#fff}
+  .btn.del{background:#ff4d4f;color:#fff}
+  .badge{font-weight:700;padding:4px 6px;border-radius:6px;font-size:12px}
+  .atrasada{color:#b91c1c}
+  .center{display:flex;justify-content:center}
+  /* Drag visuals */
+  .dragging{opacity:0.45}
+  .col.drag-over{box-shadow:0 4px 14px rgba(11,116,255,0.12);border:1px dashed #0b74ff}
+  /* modal */
+  .modal-back{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:none;justify-content:center;align-items:center}
+  .modal{background:#fff;padding:16px;border-radius:8px;min-width:320px;max-width:90%}
+  .modal input{width:100%;padding:8px;margin:6px 0;border-radius:6px;border:1px solid #ddd}
+  .modal .row{display:flex;gap:8px}
+  @media(max-width:720px){.col{width:100%}.board{flex-direction:column;gap:10px}}
+</style>
+</head>
+<body>
+
+<h1>Tarefas — {{ oportunidade.company.name }}</h1>
+
+<div class="center" style="margin-bottom:10px">
+  <button id="novoTaskBtn" class="btn" style="background:#0b74ff;color:#fff">+ Nova Tarefa</button>
+</div>
+
+<div class="board">
+  <!-- Atrasadas -->
+  <div class="col" data-column="atrasadas">
+    <h2 style="color:#b91c1c">⚠ Atrasadas</h2>
+    <div class="list" id="col-atrasadas"></div>
+  </div>
+
+  <!-- Em Execução -->
+  <div class="col" data-column="execucao">
+    <h2>⏳ Em Execução</h2>
+    <div class="list" id="col-execucao"></div>
+  </div>
+
+  <!-- Concluídas -->
+  <div class="col" data-column="concluidas">
+    <h2 style="color:#16a34a">🏁 Concluídas</h2>
+    <div class="list" id="col-concluidas"></div>
+  </div>
+</div>
+
+<!-- Modal de edição/criação -->
+<div id="modal" class="modal-back" role="dialog" aria-hidden="true">
+  <div class="modal">
+    <h3 id="modal-title">Editar tarefa</h3>
+    <input id="task-id" type="hidden"/>
+    <label>Descrição</label>
+    <input id="task-desc" placeholder="Ex: Ligar para cliente"/>
+    <label>Vencimento</label>
+    <input id="task-due" type="date"/>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+      <button id="modal-cancel" class="btn">Cancelar</button>
+      <button id="modal-save" class="btn" style="background:#0b74ff;color:#fff">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const csrftoken = (name='csrftoken') => {
+  const v = document.cookie.split(';').map(c=>c.trim()).find(c=>c.startsWith(name+'='));
+  return v ? decodeURIComponent(v.split('=')[1]) : '';
+};
+
+const oportunidadeId = '{{ oportunidade.id }}';
+
+// FUNÇÃO: renderizar card HTML
+function makeCard(t){
+  const div = document.createElement('div');
+  div.className = 'card';
+  div.draggable = true;
+  div.dataset.id = t.id;
+
+  const left = document.createElement('div');
+  left.style.display='flex';
+  left.style.alignItems='center';
+  const txt = document.createElement('div');
+  txt.textContent = t.description;
+  const meta = document.createElement('div');
+  meta.className = 'meta';
+  meta.textContent = ' • ' + t.due_date;
+  left.appendChild(txt);
+  left.appendChild(meta);
+
+  const actions = document.createElement('div');
+  actions.className = 'actions';
+  // OK (marcar concluída)
+  const ok = document.createElement('button');
+  ok.className='btn ok';
+  ok.textContent = 'OK';
+  ok.title = 'Marcar como concluída';
+  ok.addEventListener('click', ()=> markDone(t.id, ok));
+  actions.appendChild(ok);
+
+  // Editar
+  const edit = document.createElement('button');
+  edit.className='btn edit';
+  edit.textContent='✎';
+  edit.title='Editar';
+  edit.addEventListener('click', ()=> openModal(t));
+  actions.appendChild(edit);
+
+  // Excluir
+  const del = document.createElement('button');
+  del.className='btn del';
+  del.textContent='🗑';
+  del.title='Excluir';
+  del.addEventListener('click', ()=> deleteTask(t.id));
+  actions.appendChild(del);
+
+  div.appendChild(left);
+  div.appendChild(actions);
+
+  // drag events
+  div.addEventListener('dragstart', (e)=> {
+    div.classList.add('dragging');
+    e.dataTransfer.setData('text/plain', t.id);
+  });
+  div.addEventListener('dragend', ()=> div.classList.remove('dragging'));
+  return div;
+}
+
+// Carrega tarefas via API e popula colunas
+async function loadTasks(){
+  try{
+    const res = await fetch(`/crm/tarefas/list_by_opportunity/?opportunity_id=${oportunidadeId}`);
+    const data = await res.json();
+    const tasks = data.tasks || [];
+    // map to id->task with parsed fields
+    const parsed = tasks.map(tt=>({
+      id: tt.id,
+      description: tt.description,
+      due_date: tt.due_date,
+      done: tt.done
+    }));
+
+    // limpa colunas
+    document.getElementById('col-atrasadas').innerHTML='';
+    document.getElementById('col-execucao').innerHTML='';
+    document.getElementById('col-concluidas').innerHTML='';
+
+    const hoje = new Date();
+    hoje.setHours(0,0,0,0);
+
+    parsed.forEach(t=>{
+      // parse date
+      const d = new Date(t.due_date + 'T00:00:00');
+      // decide coluna
+      if(t.done){
+        document.getElementById('col-concluidas').appendChild(makeCard(t));
+      } else if(d < hoje){
+        document.getElementById('col-atrasadas').appendChild(makeCard(t));
+      } else {
+        document.getElementById('col-execucao').appendChild(makeCard(t));
+      }
+    });
+
+  }catch(e){
+    console.error('Erro carregando tarefas', e);
+  }
+}
+
+// marcar como concluída (usa mark_task_done existente)
+async function markDone(id, btn){
+  try{
+    const res = await fetch(`/crm/tarefas/mark_done/`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-CSRFToken':csrftoken()},
+      body: JSON.stringify({task_id: id})
+    });
+    if(res.ok){
+      btn.textContent='✓';
+      btn.disabled=true;
+      await loadTasks();
+    } else {
+      alert('Erro ao marcar tarefa');
+    }
+  }catch(e){ alert('Erro: '+e.message) }
+}
+
+// deletar
+async function deleteTask(id){
+  if(!confirm('Confirmar exclusão da tarefa?')) return;
+  try{
+    const res = await fetch(`/crm/tarefas/delete/`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-CSRFToken':csrftoken()},
+      body: JSON.stringify({id})
+    });
+    const j = await res.json();
+    if(res.ok && j.status === 'ok'){ await loadTasks(); }
+    else alert(j.error || 'Erro ao excluir');
+  }catch(e){ alert('Erro: '+e.message) }
+}
+
+// modal
+const modalBack = document.getElementById('modal');
+const modalTitle = document.getElementById('modal-title');
+const inputDesc = document.getElementById('task-desc');
+const inputDue = document.getElementById('task-due');
+const inputId = document.getElementById('task-id');
+
+function openModal(task){
+  modalBack.style.display='flex';
+  modalBack.setAttribute('aria-hidden','false');
+  if(task){
+    modalTitle.textContent = 'Editar tarefa';
+    inputId.value = task.id;
+    inputDesc.value = task.description;
+    inputDue.value = task.due_date;
+  } else {
+    modalTitle.textContent = 'Nova tarefa';
+    inputId.value = '';
+    inputDesc.value = '';
+    inputDue.value = '';
+  }
+}
+
+document.getElementById('modal-cancel').addEventListener('click', (e)=>{
+  e.preventDefault();
+  modalBack.style.display='none';
+  modalBack.setAttribute('aria-hidden','true');
+});
+
+document.getElementById('modal-save').addEventListener('click', async (e)=>{
+  e.preventDefault();
+  const id = inputId.value || null;
+  const description = inputDesc.value.trim();
+  const due_date = inputDue.value;
+
+  if(!description || !due_date){ alert('Preencha descrição e data'); return; }
+
+  try{
+    if(id){
+      // update
+      const res = await fetch(`/crm/tarefas/update/`, {
+        method:'POST',
+        headers:{'Content-Type':'application/json','X-CSRFToken':csrftoken()},
+        body: JSON.stringify({id, description, due_date})
+      });
+      if(!res.ok){ const j = await res.json(); alert(j.error || 'Erro ao salvar'); return; }
+    } else {
+      // create
+      const res = await fetch(`/crm/tarefas/create/`, {
+        method:'POST',
+        headers:{'Content-Type':'application/json','X-CSRFToken':csrftoken()},
+        body: JSON.stringify({ description, due_date, opportunity_id: oportunidadeId })
+      });
+      if(!res.ok){ const txt = await res.text(); alert('Erro criando: '+txt); return; }
+    }
+    modalBack.style.display='none';
+    await loadTasks();
+  }catch(e){ alert('Erro: '+e.message) }
+});
+
+// novo task
+document.getElementById('novoTaskBtn').addEventListener('click', ()=> openModal(null));
+
+// Drag & Drop: configuração de drop targets
+document.querySelectorAll('.col').forEach(col=>{
+  col.addEventListener('dragover', (e)=> { e.preventDefault(); col.classList.add('drag-over'); });
+  col.addEventListener('dragleave', ()=> col.classList.remove('drag-over'));
+  col.addEventListener('drop', async (e)=>{
+    e.preventDefault();
+    col.classList.remove('drag-over');
+    const id = e.dataTransfer.getData('text/plain');
+    const column = col.dataset.column; // 'atrasadas' | 'execucao' | 'concluidas'
+    try{
+      const res = await fetch(`/crm/tarefas/move/`, {
+        method:'POST',
+        headers:{'Content-Type':'application/json','X-CSRFToken':csrftoken()},
+        body: JSON.stringify({id: parseInt(id,10), column})
+      });
+      if(res.ok){
+        await loadTasks();
+      } else {
+        const j = await res.json();
+        alert(j.error || 'Erro movendo tarefa');
+      }
+    }catch(e){ alert('Erro: '+e.message); }
+  });
+});
+
+// inicializa
+loadTasks();
+</script>
+
+</body>
+</html>

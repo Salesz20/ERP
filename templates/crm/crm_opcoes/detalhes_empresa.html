@@ -1,0 +1,183 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% if empresa %}Editar Conta{% else %}Adicionar Conta{% endif %}</title>
+<link rel="icon" href="{% static 'img/grs-logo.png' %}" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Inter', sans-serif; min-height:100vh; background: linear-gradient(135deg, #0d0d0d, #1c1c2e); display:flex; justify-content:center; align-items:flex-start; padding:20px; }
+.container { background:#1c1c1c; border-radius:16px; padding:30px; width:100%; max-width:900px; box-shadow:0 15px 35px rgba(0,0,0,0.6),0 0 20px rgba(255,193,7,0.2); border-top:5px solid #FFC107; color:#fff; }
+h1 { font-size:28px; font-weight:600; margin-bottom:25px; color:#fff; }
+h3 { margin-bottom:10px; color:#ffc; }
+.header-info { display:grid; gap:10px; margin-bottom:25px; }
+.header-info label { font-weight:600; margin-bottom:5px; color:#ffc; display:block; }
+.header-info input { padding:8px 10px; border-radius:10px; border:none; background:#2a2a2a; color:#fff; font-size:0.95rem; width:100%; box-shadow: inset 0 0 5px rgba(0,0,0,0.5); transition:all 0.3s; }
+.header-info input:focus { border:1px solid #FFC107; background:#333; outline:none; }
+.tabs { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px; }
+.tab { padding:10px 15px; border-radius:10px; font-weight:600; cursor:pointer; background:#2a2a2a; transition:all 0.3s; color:#fff; }
+.tab.active { background:#FFC107; color:#111; }
+.section { display:none; margin-bottom:20px; }
+.section.active { display:block; }
+textarea { width:100%; min-height:80px; padding:10px; border-radius:10px; border:none; background:#2a2a2a; color:#fff; resize:vertical; font-size:0.95rem; margin-bottom:15px; box-shadow: inset 0 0 5px rgba(0,0,0,0.5); transition:all 0.3s; }
+textarea:focus { border:1px solid #FFC107; background:#333; outline:none; }
+button { width:100%; padding:14px; background:linear-gradient(135deg,#FFC107,#ffdb4d); color:#111; border:none; border-radius:10px; font-size:16px; cursor:pointer; font-weight:600; box-shadow:0 5px 15px rgba(0,0,0,0.3); transition:all 0.3s ease; }
+button:hover { background:linear-gradient(135deg,#e0a800,#ffd633); transform:scale(1.03); box-shadow:0 8px 20px rgba(0,0,0,0.4); }
+a { color:#FFC107; text-decoration:none; transition:color 0.3s; }
+a:hover { text-decoration:underline; color:#ffdb4d; }
+.contato-item { padding:10px 12px; background:#2a2a2a; border-radius:10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; }
+.contato-item a { color:#FFC107; font-weight:500; text-decoration:none; }
+.contato-item a:hover { text-decoration:underline; }
+.error { color:#d9534f; font-weight:bold; margin-bottom:15px; }
+input[type="file"] { background:#2a2a2a; color:#fff; padding:8px; border-radius:10px; border:none; margin-top:10px; }
+.file-info { margin-top:5px; font-size:0.9rem; color:#ffc; }
+/* Endereço grid responsiva */
+.endereco-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; }
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    const tabs = document.querySelectorAll('.tab');
+    const sections = document.querySelectorAll('.section');
+    tabs.forEach(tab=>{
+        tab.addEventListener('click',()=>{
+            tabs.forEach(t=>t.classList.remove('active'));
+            tab.classList.add('active');
+            const sectionId = tab.getAttribute('data-section');
+            sections.forEach(s=>s.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+        });
+    });
+});
+</script>
+</head>
+<body>
+<div class="container">
+    <h1>{% if empresa %}Editar Conta{% else %}Adicionar Conta{% endif %}</h1>
+
+    {% if erro %}<p class="error">{{ erro }}</p>{% endif %}
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Header com Nome e CNPJ -->
+        <div class="header-info">
+            <div>
+                <label for="nome">Nome da Empresa</label>
+                <input type="text" id="nome" name="nome" value="{{ empresa.name|default_if_none:'' }}" required>
+            </div>
+            <div>
+                <label for="cnpj">CNPJ</label>
+                <input type="text" id="cnpj" name="cnpj" value="{{ empresa.cnpj|default_if_none:'' }}">
+            </div>
+            {% if empresa %}
+            <div><label>Data do Registro</label><span>{{ empresa.data_registro|default_if_none:'-' }}</span></div>
+            <div><label>Vendedor</label><span>{{ empresa.vendedor|default_if_none:'-' }}</span></div>
+            {% endif %}
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <div class="tab active" data-section="contatos">Contatos</div>
+            <div class="tab" data-section="oportunidades">Oportunidades</div>
+            <div class="tab" data-section="endereco">Endereço</div>
+            <div class="tab" data-section="telefones">Telefones e E-mail</div>
+            <div class="tab" data-section="mapa">Mapa</div>
+            <div class="tab" data-section="info">Informações Adicionais</div>
+            <div class="tab" data-section="caracteristicas">Características</div>
+            <div class="tab" data-section="anexos">Anexos</div>
+        </div>
+
+        <!-- Seções -->
+        <div class="section active" id="contatos">
+            {% if not nova_empresa and contatos %}
+                <h3>Contatos cadastrados</h3>
+                {% for contato in contatos %}
+                    <div class="contato-item">
+                        <a href="{% url 'escolha:detalhes_contato' contato.id %}">{{ contato.name }}</a>
+                        {% if contato.email %}<span>{{ contato.email }}</span>{% endif %}
+                    </div>
+                {% empty %}
+                    <p>Nenhum contato cadastrado ainda.</p>
+                {% endfor %}
+            {% else %}
+                <p>Nenhum contato cadastrado ainda.</p>
+            {% endif %}
+        </div>
+
+        <div class="section" id="oportunidades">
+            <textarea name="oportunidades" placeholder="Detalhes das oportunidades...">{{ empresa.oportunidades|default_if_none:'' }}</textarea>
+        </div>
+
+        <!-- Endereço -->
+        <div class="section" id="endereco">
+            <div class="endereco-grid">
+                <div>
+                    <label for="endereco">Endereço</label>
+                    <input type="text" id="endereco" name="endereco" value="{{ empresa.endereco|default_if_none:'' }}">
+                </div>
+                <div>
+                    <label for="complemento">Complemento</label>
+                    <input type="text" id="complemento" name="complemento" value="{{ empresa.complemento|default_if_none:'' }}">
+                </div>
+                <div>
+                    <label for="cep">CEP</label>
+                    <input type="text" id="cep" name="cep" value="{{ empresa.cep|default_if_none:'' }}">
+                </div>
+                <div>
+                    <label for="bairro">Bairro</label>
+                    <input type="text" id="bairro" name="bairro" value="{{ empresa.bairro|default_if_none:'' }}">
+                </div>
+                <div>
+                    <label for="cidade">Cidade</label>
+                    <input type="text" id="cidade" name="cidade" value="{{ empresa.cidade|default_if_none:'' }}">
+                </div>
+                <div>
+                    <label for="estado">Estado/Província</label>
+                    <input type="text" id="estado" name="estado" value="{{ empresa.estado|default_if_none:'' }}">
+                </div>
+                <div>
+                    <label for="pais">País</label>
+                    <input type="text" id="pais" name="pais" value="{{ empresa.pais|default_if_none:'' }}">
+                </div>
+            </div>
+        </div>
+
+        <div class="section" id="telefones">
+            <textarea name="telefones" placeholder="Telefone e e-mail...">{{ empresa.telefones|default_if_none:'' }}</textarea>
+        </div>
+        <div class="section" id="mapa">
+            <textarea name="mapa" placeholder="Link ou embed do mapa...">{{ empresa.mapa|default_if_none:'' }}</textarea>
+        </div>
+        <div class="section" id="info">
+            <textarea name="info" placeholder="Informações adicionais...">{{ empresa.info|default_if_none:'' }}</textarea>
+        </div>
+        <div class="section" id="caracteristicas">
+            <textarea name="caracteristicas" placeholder="Características da empresa...">{{ empresa.caracteristicas|default_if_none:'' }}</textarea>
+        </div>
+        <div class="section" id="anexos">
+            <label for="anexo">Enviar arquivos</label>
+            <input type="file" id="anexo" name="anexo" multiple>
+            {% if anexos %}
+                <h3>Anexos existentes</h3>
+                <ul>
+                    {% for anexo in anexos %}
+                        <li class="file-info">
+                            <a href="{{ anexo.arquivo.url }}" target="_blank">{{ anexo.arquivo.name }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="file-info">Nenhum arquivo enviado ainda.</p>
+            {% endif %}
+        </div>
+
+        <button type="submit">{% if empresa %}Salvar Alterações{% else %}Adicionar Conta{% endif %}</button>
+    </form>
+
+    <a href="{% url 'escolha:contas' %}">← Voltar para Contas</a>
+</div>
+</body>
+</html>
