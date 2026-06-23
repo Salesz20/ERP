@@ -9,8 +9,6 @@
 
     <link rel="icon" href="{% static 'img/grs-logo.png' %}" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-
-    <!-- Ícones Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <style>
@@ -25,7 +23,8 @@
             min-height: 100vh;
             background: linear-gradient(135deg, #0d0d0d, #1b1b1d);
             color: #fff;
-            padding-top: 90px; /* mais espaço para descer o conteúdo */
+            padding-top: 90px;
+            overflow-x: hidden; /* Garante que nada escape da tela */
         }
 
         /* --- TOPBAR --- */
@@ -101,32 +100,38 @@
         /* --- Conteúdo --- */
         .container {
             width: 100%;
-            max-width: 1400px;
+            max-width: 100%; /* Ocupa a largura total para os cards terem espaço */
             text-align: center;
-            padding: 20px;
+            padding: 0 20px;
             margin: 0 auto;
-            margin-top: 70px; /* desce ainda mais */
+            margin-top: 70px;
         }
 
         h1 {
             color: #fff;
-            font-size: 30px;
+            font-size: clamp(24px, 3vw, 36px); 
             margin-bottom: 15px;
         }
 
         p.subtitle {
             color: #ccc;
             margin-bottom: 35px;
-            font-size: 15px;
+            font-size: clamp(14px, 1.2vw, 18px);
         }
 
         .grid {
+            width: 100%;
             display: flex;
-            justify-content: space-between;
-            gap: 20px;
-            flex-wrap: nowrap;
-            overflow-x: auto;
-            padding: 0 20px;
+            justify-content: center;
+        }
+
+        form {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: nowrap; /* PROIBIDO pular linha */
+            gap: 30px; /* Espaço entre eles */
+            width: 100%;
         }
 
         .card {
@@ -134,39 +139,48 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            width: 180px;
-            height: 180px;
+            
+            /* FLEXIBILIDADE TOTAL */
+            flex: 1 1 auto; /* Eles crescem e diminuem igualmente */
+            
+            width: 14vw; 
+            aspect-ratio: 1 / 1; /* Mantém o card sempre quadrado mesmo ao encolher */
+            
+            /* Limite máximo apenas para não virar uma TV em telas gigantes */
+            max-width: 200px; 
+            max-height: 200px;
+            /* Removi o min-width para ele poder diminuir o quanto precisar */
+
             background: linear-gradient(135deg, #ffffff, #e0e0e0);
             color: #111;
             border-radius: 16px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
             transition: 0.3s;
             font-weight: 600;
-            font-size: 16px;
+            
+            /* Texto diminui conforme o card encolhe */
+            font-size: clamp(10px, 1vw, 16px);
             border: none;
             cursor: pointer;
-            padding: 20px;
+            padding: 10px;
+            line-height: 1.2;
         }
 
         .card i {
-            font-size: 36px;
+            font-size: clamp(20px, 2.5vw, 40px); /* Ícone também encolhe */
             margin-bottom: 12px;
         }
 
         .card:hover {
             transform: translateY(-5px);
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
-        }
-
-        form {
-            display: contents;
+            flex: 1.2 1 auto; /* Dá um leve destaque no card focado */
         }
     </style>
 </head>
 
 <body>
 
-    <!-- TOPBAR -->
     <div class="topbar">
         <div class="topbar-left">
             <img src="{% static 'img/grs-logo.png' %}" alt="GRS">
@@ -185,7 +199,6 @@
         </div>
     </div>
 
-    <!-- Conteúdo -->
     <div class="container">
         <h1>GRS Serviços</h1>
         <p class="subtitle">Olá, <b>{{ user.username }}</b>! Em que nós vamos trabalhar hoje?</p>
@@ -194,9 +207,9 @@
             <form method="POST">
                 {% csrf_token %}
                 <button class="card" type="submit" name="escolha" value="crm"><i class="fas fa-chart-line"></i>CRM</button>
-                <button class="card" type="submit" name="escolha" value="vendas"><i class="fas fa-receipt"></i>Vendas e NF-e</button>
-                <button class="card" type="submit" name="escolha" value="servicos"><i class="fas fa-concierge-bell"></i>Serviços e NFS-e</button>
-                <button class="card" type="submit" name="escolha" value="compras"><i class="fas fa-boxes"></i>Compras, Estoque e Produção</button>
+                <button class="card" type="submit" name="escolha" value="vendas"><i class="fas fa-receipt"></i>Vendas</button>
+                <button class="card" type="submit" name="escolha" value="servicos"><i class="fas fa-concierge-bell"></i>Serviços</button>
+                <button class="card" type="submit" name="escolha" value="compras"><i class="fas fa-boxes"></i>Estoque e Produção</button>
                 <button class="card" type="submit" name="escolha" value="financas"><i class="fas fa-wallet"></i>Finanças</button>
                 <button class="card" type="submit" name="escolha" value="contador"><i class="fas fa-user-tie"></i>Painel do Contador</button>
             </form>

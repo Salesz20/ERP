@@ -1,0 +1,174 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conciliação Bancária | GRS</title>
+<link rel="icon" href="{% static 'img/grs-logo.png' %}" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<style>
+/* Base de Estilo GRS */
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    background:linear-gradient(135deg,#0d0d0d,#1c1c2e);
+    display:flex; justify-content:center; padding-top:20px;
+}
+
+.container{
+    background:#fff; border-radius:16px; padding:25px; width:100%;
+    max-width:1550px; height:95vh; display:flex; flex-direction:column; gap: 15px; box-shadow:0 0 0 4px #1c1c1c;
+}
+
+/* Header */
+.header-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+.header-area h1 { font-size: 24px; color: #1a1a1a; }
+
+.status-summary { display: flex; gap: 15px; }
+.stat-box { background: #f8f9fa; border: 1px solid #eee; padding: 12px 20px; border-radius: 12px; min-width: 160px; }
+.stat-box small { font-size: 10px; color: #666; text-transform: uppercase; font-weight: 600; }
+.stat-box p { font-size: 16px; font-weight: 700; color: #1a1a1a; }
+
+/* Dropzone de Arquivo */
+.import-zone {
+    border: 2px dashed #00a18e; background: #f0fdfa; padding: 25px; border-radius: 12px;
+    text-align: center; cursor: pointer; transition: 0.3s;
+}
+.import-zone:hover { background: #e6f6f4; }
+.import-zone i { font-size: 28px; color: #00a18e; margin-bottom: 8px; }
+
+/* Grid Principal */
+.split-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; flex: 1; overflow: hidden; }
+.panel { display: flex; flex-direction: column; border: 1px solid #ddd; border-radius: 12px; overflow: hidden; background: #fff; }
+.panel-head { background: #1c1c1c; color: #fff; padding: 12px; font-size: 13px; font-weight: 600; display: flex; justify-content: space-between; }
+
+.table-wrapper { flex: 1; overflow-y: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th { position: sticky; top: 0; background: #f4f4f4; padding: 12px; text-align: left; z-index: 5; border-bottom: 1px solid #ddd; }
+td { padding: 12px; border-bottom: 1px solid #eee; }
+
+/* Status de Linha */
+.match { background-color: #e8f5e9 !important; }
+.missing { background-color: #fffde7 !important; }
+
+.btn-action { 
+    background: #00a18e; color: #fff; border: none; padding: 6px 12px; 
+    border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600;
+}
+.btn-outline { background: #fff; border: 1px solid #ddd; color: #333; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; }
+
+.sidebar-right { width: 180px; display: flex; flex-direction: column; gap: 10px; }
+</style>
+</head>
+
+<body>
+<div class="container">
+    
+    <div class="header-area">
+        <div>
+            <h1><i class="fas fa-balance-scale"></i> Conciliação Bancária</h1>
+            <p style="color:#666; font-size: 13px;">Sincronize seu banco com o sistema GRS.</p>
+        </div>
+        <div class="status-summary">
+            <div class="stat-box"><small>Saldo do Banco</small><p id="bancoVal">R$ 0,00</p></div>
+            <div class="stat-box"><small>Saldo do Sistema</small><p id="sistemaVal" style="color: #00a18e;">R$ 0,00</p></div>
+            <div class="stat-box" style="background: #1c1c1c; color: #fff;"><small style="color:#aaa">Diferença</small><p id="difVal">R$ 0,00</p></div>
+        </div>
+    </div>
+
+    <div class="import-zone" onclick="simularArquivo()">
+        <i class="fas fa-cloud-upload-alt"></i>
+        <h3>Importar Extrato Bancário (.OFX)</h3>
+        <p style="font-size: 13px; color: #666;">Clique aqui para simular a leitura do arquivo do banco.</p>
+    </div>
+
+    <div class="split-container">
+        <div class="panel">
+            <div class="panel-head"><span>BANCO (EXTRATO)</span></div>
+            <div class="table-wrapper">
+                <table id="tabBanco">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Descrição</th>
+                            <th>Valor</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-head"><span>SISTEMA (Lançamentos GRS)</span></div>
+            <div class="table-wrapper">
+                <table id="tabSistema">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Favorecido</th>
+                            <th>Valor</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px;">
+        <button onclick="history.back()" class="btn-outline"><i class="fas fa-arrow-left"></i> Voltar</button>
+        <button class="btn-action" style="padding: 12px 40px; font-size: 14px;">Confirmar e Finalizar</button>
+    </div>
+
+</div>
+
+<script>
+function simularArquivo() {
+    // Dados Fictícios do Extrato
+    const extrato = [
+        { data: '12/01', desc: 'PIX RECEBIDO - JOÃO SILVA', valor: 1250.00, match: true },
+        { data: '13/01', desc: 'PAGTO BOLETO - ENEL DIST', valor: -250.00, match: true },
+        { data: '13/01', desc: 'TARIFA BANCARIA', valor: -45.00, match: false }
+    ];
+
+    // Dados Fictícios do Sistema
+    const sistema = [
+        { data: '12/01', desc: 'João Silva', valor: 1250.00 },
+        { data: '13/01', desc: 'Enel Energia', valor: -250.00 }
+    ];
+
+    const tBanco = document.querySelector('#tabBanco tbody');
+    const tSist = document.querySelector('#tabSistema tbody');
+    tBanco.innerHTML = ''; tSist.innerHTML = '';
+
+    extrato.forEach(i => {
+        const tr = document.createElement('tr');
+        tr.className = i.match ? 'match' : 'missing';
+        tr.innerHTML = `<td>${i.data}</td><td>${i.desc}</td><td style="color:${i.valor > 0 ? 'green':'red'}">R$ ${i.valor.toFixed(2)}</td>
+                        <td>${i.match ? '✅ OK' : '<button class="btn-action" onclick="alert(\'Isso criaria o lançamento de R$ 45 no sistema!\')">Consolidar</button>'}</td>`;
+        tBanco.appendChild(tr);
+    });
+
+    sistema.forEach(i => {
+        const tr = document.createElement('tr');
+        tr.className = 'match';
+        tr.innerHTML = `<td>${i.data}</td><td>${i.desc}</td><td>R$ ${i.valor.toFixed(2)}</td><td>🔗 Vinculado</td>`;
+        tSist.appendChild(tr);
+    });
+
+    document.getElementById('bancoVal').innerText = "R$ 955,00";
+    document.getElementById('sistemaVal').innerText = "R$ 1.000,00";
+    document.getElementById('difVal').innerText = "- R$ 45,00";
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Omie - Pedido de Venda Completo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 12px; }
+        .omie-orange { color: #845d27; font-weight: bold; }
+        .main-container { background: white; margin: 10px; border-radius: 4px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); min-height: 90vh; }
+        .omie-header { border-bottom: 1px solid #eee; padding: 10px 20px; display: flex; justify-content: space-between; }
+        .omie-input { border: 1px solid #ccc; border-radius: 3px; padding: 3px 7px; font-size: 12px; width: 100%; }
+        .omie-input:focus { border-color: #845d27; outline: none; box-shadow: 0 0 3px rgba(132, 93, 39, 0.3); }
+        .nav-tabs { border-bottom: 1px solid #ddd; margin-top: 20px; }
+        .nav-link { color: #777; border: none !important; cursor: pointer; padding: 8px 15px; }
+        .nav-link.active { color: #333 !important; border-bottom: 3px solid #845d27 !important; font-weight: bold; }
+        .tab-content { padding: 20px 0; display: none; }
+        .tab-content.active { display: block; }
+        .sidebar { background: #fdfdfd; border-left: 1px solid #eee; padding: 20px; text-align: center; }
+        label { display: block; margin-bottom: 3px; color: #666; }
+        .total-box { background: #eee; padding: 5px; border: 1px solid #ccc; text-align: right; font-weight: bold; }
+        .link-orange { color: #a67c52; text-decoration: none; font-size: 11px; font-weight: bold; display: block; margin-bottom: 5px; }
+        .table-omie th { background-color: #f2f2f2; font-weight: 600; color: #555; }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid main-container">
+    <div class="row h-100">
+        <div class="col-md-10 p-4">
+            <div class="omie-header">
+                <h5 class="omie-orange">Inclusão de Orçamento</h5>
+                <span>Fechar <strong style="cursor:pointer">X</strong></span>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-md-7">
+                    <label>Cliente</label>
+                    <input type="text" class="omie-input" placeholder="Digite o nome ou CNPJ...">
+                    <a href="#" class="link-orange mt-1">🔍 Consulta de Crédito</a>
+                </div>
+                <div class="col-md-3">
+                    <label>Previsão de Faturamento</label>
+                    <input type="text" class="omie-input" value="09/01/2026">
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col text-center"><label>Mercadorias</label><div class="total-box">0,00</div></div>
+                <div class="col text-center"><label>Desconto</label><input type="text" class="omie-input text-end" value="0,00"></div>
+                <div class="col text-center"><label>Total IPI</label><div class="total-box">0,00</div></div>
+                <div class="col text-center"><label>ICMS ST</label><div class="total-box">0,00</div></div>
+                <div class="col text-center"><label>Total do Pedido</label><div class="total-box" style="background:#fffbe6">0,00</div></div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-md-4"><label>Vendedor</label><input type="text" class="omie-input"></div>
+                <div class="col-md-3"><label>Parcelas</label><select class="omie-input"><option>A Vista</option><option>30 dias</option></select></div>
+                <div class="col-md-4"><label>Cenário Fiscal</label><select class="omie-input"><option>Selecione o cenário...</option></select></div>
+            </div>
+
+            <ul class="nav nav-tabs">
+                <li class="nav-item"><a class="nav-link" onclick="openTab('itens')">Itens da Venda</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="openTab('depto')">Departamentos</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="openTab('frete')">Frete e Outras Despesas</a></li>
+                <li class="nav-item"><a class="nav-link active" onclick="openTab('info')">Informações Adicionais</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="openTab('parcelas')">Parcelas</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="openTab('obs')">Observações</a></li>
+            </ul>
+
+            <div id="info" class="tab-content active">
+                <div class="row">
+                    <div class="col-md-4"><label>Categoria</label><select class="omie-input"><option>Venda de Mercadoria</option></select></div>
+                    <div class="col-md-4"><label>Conta Corrente</label><select class="omie-input"><option>Itaú Principal</option></select></div>
+                    <div class="col-md-4"><label>Etapa</label><select class="omie-input"><option>Orçamento</option><option>Pedido de Venda</option></select></div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-3"><label>Nº Pedido Cliente</label><input type="text" class="omie-input"></div>
+                    <div class="col-md-3"><label>Nº Contrato</label><input type="text" class="omie-input"></div>
+                    <div class="col-md-3"><label>Contato</label><input type="text" class="omie-input"></div>
+                    <div class="col-md-3"><label>Projeto</label><input type="text" class="omie-input"></div>
+                </div>
+                <div class="row mt-4">
+                    <div class="col-md-7">
+                        <label>Dados Adicionais para a Nota Fiscal</label>
+                        <textarea class="omie-input" rows="4" placeholder="Informações que sairão no XML/DANFE"></textarea>
+                        <div class="mt-2">
+                            <input type="checkbox" id="consumo"> <label style="display:inline" for="consumo">Nota Fiscal para Consumo Final</label>
+                        </div>
+                    </div>
+                    <div class="col-md-5 pt-4">
+                        <a href="#" class="link-orange">Incluir notas fiscais relacionadas</a>
+                        <a href="#" class="link-orange">Alterar as informações de interesse do fisco</a>
+                        <a href="#" class="link-orange">Alterar o endereço de entrega</a>
+                    </div>
+                </div>
+            </div>
+
+            <div id="itens" class="tab-content">
+                <table class="table table-sm table-bordered table-omie mt-2">
+                    <thead><tr><th>Item</th><th>Qtd</th><th>Unitário</th><th>NCM</th><th>Total</th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td><input type="text" class="omie-input" placeholder="Produto/Serviço"></td>
+                            <td><input type="number" class="omie-input" value="1"></td>
+                            <td><input type="text" class="omie-input" value="0,00"></td>
+                            <td><input type="text" class="omie-input" placeholder="Obrigatório p/ NF"></td>
+                            <td>0,00</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button class="btn btn-sm btn-outline-secondary">+ Adicionar Produto</button>
+            </div>
+
+            <div id="parcelas" class="tab-content">
+                <table class="table table-sm table-bordered table-omie mt-2">
+                    <thead><tr><th>Vencimento</th><th>Valor</th><th>Meio de Pagamento</th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td><input type="date" class="omie-input" value="2026-01-09"></td>
+                            <td><input type="text" class="omie-input" value="0,00"></td>
+                            <td><select class="omie-input"><option>Boleto</option><option>Pix</option></select></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="frete" class="tab-content">
+                <div class="row">
+                    <div class="col-md-4">
+                        <label>Modalidade de Frete</label>
+                        <select class="omie-input">
+                            <option>9 - Sem Frete</option>
+                            <option>0 - Emitente (CIF)</option>
+                            <option>1 - Destinatário (FOB)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4"><label>Transportadora</label><input type="text" class="omie-input"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="col-md-2 sidebar h-100">
+            <button class="btn btn-light border w-100 p-3 mb-2 shadow-sm">☁️ Salvar</button>
+            <p class="text-muted mt-5" style="font-size: 10px;">Origem do Pedido: <strong>GRS Serviços</strong></p>
+        </div>
+    </div>
+</div>
+<a href="{% url 'vendas_pedidos' %}" class="voltar-link">← Cancelar e Voltar</a>
+
+<script>
+    function openTab(tabName) {
+        var content = document.getElementsByClassName("tab-content");
+        for (var i = 0; i < content.length; i++) { content[i].classList.remove("active"); }
+        
+        var links = document.getElementsByClassName("nav-link");
+        for (var i = 0; i < links.length; i++) { links[i].classList.remove("active"); }
+
+        document.getElementById(tabName).classList.add("active");
+        event.currentTarget.classList.add("active");
+    }
+</script>
+
+</body>
+</html>

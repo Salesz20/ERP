@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fornecedores</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #000; color: #000; font-family: 'Inter', sans-serif; padding: 20px; overflow: hidden; }
+.wrapper { background: #fff; width: calc(100% - 60px); height: calc(100vh - 60px); margin: 0 auto; border-radius: 12px; padding: 30px; box-shadow: 0 0 0 3px #fff; display: flex; flex-direction: column; }
+
+.table-wrapper { flex: 1; overflow-y: auto; padding-right: 8px; }
+
+/* Títulos */
+h1 { font-size: 24px; font-weight: 600; margin-bottom: 20px; color: #000; text-align: center; }
+
+/* Botão Novo */
+.novo { margin-bottom: 15px; }
+.novo a { padding: 8px 16px; background: #111; color: #fff; text-decoration: none; border-radius: 7px; font-weight: 600; font-size: 14px; }
+.novo a:hover { background: #333; }
+
+/* Pesquisa */
+.pesquisa { margin-bottom: 18px; }
+.pesquisa form { display: flex; gap: 8px; }
+.pesquisa input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.9rem; }
+.pesquisa button { padding: 10px 16px; border: none; background: #111; color: #fff; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; }
+.pesquisa button:hover { background: #333; }
+
+/* Tabela compacta */
+table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; white-space: nowrap; font-size: 13px; }
+th { background: #e9e9e9; padding: 8px; font-weight: 600; border-bottom: 1px solid #ccc; }
+td { padding: 8px; border-bottom: 1px solid #eee; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+tr:hover { background: #f7f7f7; }
+
+td a { color: #000; font-weight: 600; text-decoration: none; }
+td a:hover { text-decoration: underline; }
+
+/* Situação */
+.status-badge {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.status-badge .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    color: #fff;
+}
+.dot.green { background: #2ecc71; }
+.dot.red { background: #e74c3c; }
+
+/* Botão voltar */
+.voltar { display: inline-block; margin-top: 20px; padding: 10px 18px; background: #111; color: #fff; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px; }
+.voltar:hover { background: #333; }
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+
+    <h1>Fornecedores</h1>
+
+    <div class="novo">
+        <a href="{% url 'compras:incluir_fornecedores' %}">+ Adicionar Conta</a>
+    </div>
+
+    <!-- Pesquisa -->
+    <div class="pesquisa">
+        <form method="get">
+            <input type="text" name="q" value="{{ query }}" placeholder="Pesquisar contas...">
+            <button type="submit">Buscar</button>
+        </form>
+    </div>
+
+    <!-- Tabela -->
+    <div class="table-wrapper">
+        <table>
+            <tr>
+                <th>Situação</th>
+                <th>Tags</th>
+                <th>CNPJ/CPF</th>
+                <th>Razão Social / Nome Completo</th>
+                <th>Nome Fantasia / Nome Abreviado</th>
+                <th>DDD</th>
+                <th>Telefone</th>
+                <th>Nome do Contato</th>
+                <th>Criado por</th>
+                <th>Última Alteração</th>
+                <th>Inclusão</th>
+                <th>Alterado por</th>
+            </tr>
+
+            {% for cliente in clientes %}
+            <tr>
+                <td>
+                    <div class="status-badge">
+                        {% if cliente.situacao == "Inativa" %}
+                            <span class="dot red"><i class="fa-solid fa-xmark"></i></span> Inativa
+                        {% else %}
+                            <span class="dot green"><i class="fa-solid fa-check"></i></span> Ativa
+                        {% endif %}
+                    </div>
+                </td>
+
+                <td>{{ cliente.tags_selecionadas }}</td>
+                <td>{{ cliente.cnpj_cpf }}</td>
+
+                <td><a href="{% url 'escolha:editar_cliente' cliente.id %}">{{ cliente.razao_social }}</a></td>
+
+                <td>{{ cliente.nome_fantasia }}</td>
+                <td>{{ cliente.ddd }}</td>
+                <td>{{ cliente.telefone }}</td>
+                <td>{{ cliente.nome_contato }}</td>
+                <td>{{ cliente.criado_por }}</td>
+                <td>{{ cliente.ultima_alteracao|date:"d/m/Y H:i" }}</td>
+                <td>{{ cliente.data_criacao|date:"d/m/Y" }}</td>
+                <td>{{ cliente.alterado_por }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="12" style="text-align:center;">Nenhum cliente cadastrado.</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <a href="{% url 'compras:compras' %}" class="voltar">Voltar ao Serviços NFS-E</a>
+
+</div>
+
+</body>
+</html>

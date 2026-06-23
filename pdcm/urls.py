@@ -26,6 +26,11 @@ def selecionar(request):
 # ---- URLs do projeto ----
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('servicos/', include('servicos.urls')), # FZR SERVICOS URLS E VIEW FUNCIONAR
+    path("vendas/", include("vendas.urls")),
+    path('compras/', include('compras.urls')),    # COMPRAS
+    path("financas/", include("financas.urls")),
+    path("contador/", include("contador.urls")),
 
     # Login / Logout
     path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),

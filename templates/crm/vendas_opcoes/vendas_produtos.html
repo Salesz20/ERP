@@ -1,0 +1,248 @@
+{% load static %}
+{% load tz %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Produtos - Inventário</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+/* Mantendo seu estilo original exatamente como solicitado */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    background: #000;
+    color: #000;
+    font-family: 'Inter', sans-serif;
+    padding: 25px;
+    overflow: hidden;
+}
+
+.wrapper {
+    background: #ffffff;
+    width: calc(100% - 80px);
+    height: calc(100vh - 80px);
+    margin: 0 auto;
+    border-radius: 12px;
+    padding: 40px;
+    box-shadow: 0 0 0 4px #fff;
+    display: flex;
+    flex-direction: column;
+}
+
+.contatos-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+h1 {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 25px;
+    color: #000;
+    text-align: center;
+}
+
+.novo {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 20px;
+}
+
+.novo a {
+    padding: 10px 20px;
+    background: #111;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.novo a:hover { background: #333; }
+
+.pesquisa { margin-bottom: 25px; }
+.pesquisa form { display: flex; gap: 10px; }
+.pesquisa input {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 0.95rem;
+}
+
+.pesquisa button {
+    padding: 12px 18px;
+    border: none;
+    background: #111;
+    color: #fff;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 5px;
+}
+
+th {
+    background: #e9e9e9;
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 1px solid #ccc;
+    font-size: 13px; /* Reduzi um pouco para caber mais colunas */
+}
+
+td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    font-size: 13px;
+}
+
+tr:hover { background: #f7f7f7; }
+
+.delete-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #444;
+    font-size: 16px;
+}
+
+.delete-btn:hover { color: red; }
+
+.pagination {
+    margin-top: 20px;
+    text-align: center;
+    font-weight: 600;
+}
+
+.pagination a {
+    padding: 8px 14px;
+    background: #111;
+    color: #fff;
+    border-radius: 6px;
+    text-decoration: none;
+    margin: 0 4px;
+}
+
+.voltar {
+    display: inline-block;
+    margin-top: 25px;
+    padding: 12px 20px;
+    background: #111;
+    color: #fff;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+}
+</style>
+
+<script>
+function confirmarExclusao(event, nome) {
+    if (!confirm("Deseja excluir o produto: " + nome + "?")) {
+        event.preventDefault();
+    }
+}
+</script>
+</head>
+<body>
+
+<div class="wrapper">
+
+    <h1>Lista de Produtos</h1>
+
+    <div class="novo">
+        <a href="{% url 'incluir_produtos' %}">+ Adicionar Produto</a>
+    </div>
+
+    <div class="pesquisa">
+        <form method="get">
+            <input type="text" name="q" placeholder="Pesquisar por descrição ou código..." value="{{ query }}">
+            <button type="submit">Buscar</button>
+        </form>
+    </div>
+
+    <div class="contatos-wrapper">
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Situação</th>
+                    <th>Descrição</th>
+                    <th>Código</th>
+                    <th>Família</th>
+                    <th>NCM</th>
+                    <th>Preço Unitário</th>
+                    <th>Estoque</th>
+                    <th style="text-align: center;">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if produtos %}
+                    {% for p in produtos %}
+                    <tr>
+                        <td>{{ p.situacao }}</td>
+                        <td><strong>{{ p.descricao }}</strong></td>
+                        <td>{{ p.codigo }}</td>
+                        <td>{{ p.familia }}</td>
+                        <td>{{ p.ncm }}</td>
+                        <td>R$ {{ p.valor_unitario }}</td>
+                        <td>{{ p.saldo }} {{ p.unidade }}</td>
+                        <td style="text-align: center;">
+                            <button class="delete-btn" onclick="confirmarExclusao(event, '{{ p.descricao }}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    
+                    {% with faltando=9|add:"-"|add:produtos|length %}
+                        {% if faltando > 0 %}
+                            {% for i in "x"|center:faltando %}
+                            <tr>
+                                <td style="height: 45px;"></td>
+                                <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                            </tr>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                {% else %}
+                    {% for i in "x"|center:9 %}
+                    <tr>
+                        <td style="height: 45px;"></td>
+                        <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                    </tr>
+                    {% endfor %}
+                {% endif %}
+            </tbody>
+        </table>
+
+    </div>
+
+    <div class="pagination">
+        {% if produtos.paginator %}
+            Página {{ produtos.number }} de {{ produtos.paginator.num_pages }}
+            {% if produtos.has_previous %}<a href="?q={{ query }}&page={{ produtos.previous_page_number }}">«</a>{% endif %}
+            {% if produtos.has_next %}<a href="?q={{ query }}&page={{ produtos.next_page_number }}">»</a>{% endif %}
+        {% endif %}
+    </div>
+
+    <a href="{% url 'vendas' %}" class="voltar">Voltar ao Início</a>
+
+</div>
+
+</body>
+</html>

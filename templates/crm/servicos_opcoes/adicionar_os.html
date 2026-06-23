@@ -1,0 +1,1009 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adicionar Ordem de Serviço</title>
+<link rel="icon" href="{% static 'img/grs-logo.png' %}" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+/* Reset e Base */
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+  font-family:'Inter',sans-serif;
+  min-height:100vh;
+  background:linear-gradient(135deg,#0d0d0d,#1c1c2e);
+  display:flex;
+  justify-content:center;
+  padding-top:20px;
+}
+
+/* Container */
+.container{
+  background:#fff;
+  border-radius:16px;
+  padding:20px 40px;
+  width:100%;
+  max-width:1450px;
+  height:95vh;
+  display:flex;
+  flex-direction:row;
+  gap: 20px;
+  box-shadow:0 0 0 4px #1c1c1c;
+}
+
+.form-content-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+  padding-right: 15px;
+}
+
+.sidebar {
+  width: 170px;
+  border-left: 1px solid #eee;
+  padding-left: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+h1{font-size:28px;font-weight:600;margin-bottom:20px}
+label{font-weight:600;font-size:13px;margin-bottom:5px;display:block}
+
+input,select,textarea{
+  padding:8px 10px;
+  border-radius:10px;
+  border:1px solid #ccc;
+  width:100%;
+  font-size:.95rem
+}
+
+textarea{resize:none}
+#obs textarea{ height:400px; }
+
+/* Banner de Erro */
+.error-banner {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #f5c6cb;
+}
+
+.tabs{ display:flex; gap:10px; margin:15px 0; }
+.tab{
+  padding:10px 16px;
+  border-radius:10px;
+  background:#2a2a2a;
+  color:#fff;
+  font-weight:600;
+  font-size:13px;
+  cursor:pointer
+}
+.tab.active{
+  background:#969696;
+  color:#000000;
+}
+
+.content{flex:1}
+.section{display:none}
+.section.active{display:block}
+
+.btn-select-service {
+  padding:12px;
+  background:linear-gradient(135deg,#363636,#202020);
+  color:#fff;
+  border:none;
+  border-radius:10px;
+  font-weight:600;
+  cursor:pointer;
+  margin-bottom: 15px;
+}
+
+.table-servicos { width: 100%; border-collapse: collapse; margin-top: 10px;}
+.table-servicos th { text-align: left; padding: 10px; border-bottom: 2px solid #eee; font-size: 12px; color: #666; }
+.table-servicos td { padding: 10px; border-bottom: 1px solid #eee; font-size: 14px; }
+.btn-del { color: #d93025; border: none; background: none; cursor: pointer; font-weight: bold; font-size: 16px; }
+
+.btn-side {
+  background: none;
+  border: none;
+  color: #333;
+  text-align: left;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  transition: 0.2s;
+}
+.btn-side:hover { background: #f5f5f5; border-radius: 8px; }
+
+.footer-summary{
+  border-top:1px solid #ddd;
+  padding-top:15px;
+  margin-top: 20px;
+}
+.status-tag{ padding:12px; background:#fff3cd; border-radius:10px; font-weight:600; margin-bottom:10px; }
+.summary-box{ padding:15px; border-radius:12px; background:#f5f5f5; margin-bottom:10px; }
+.summary-box p{ display:flex; justify-content:space-between; font-size:14px; margin-bottom:6px }
+
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:50}
+.modal{background:#fff;padding:20px;border-radius:12px;width:400px;max-height:80vh;overflow:auto;position:relative}
+
+/* ESTILOS DE IMPRESSÃO */
+#print-layout {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+}
+
+@media print {
+  body * { visibility: hidden; }
+  #print-layout, #print-layout * { visibility: visible; }
+  #print-layout { 
+    display: block !important; 
+    position: absolute; left: 0; top: 0; width: 100%; padding: 20px; color: #000;
+  }
+  .header-print { display: flex; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
+  .header-info-print { text-align: right; font-size: 10px; }
+  .title-print { font-size: 18px; font-weight: bold; margin: 15px 0; }
+  .section-print { margin-bottom: 20px; }
+  .section-title-print { font-size: 14px; font-weight: bold; border-bottom: 1px solid #eee; margin-bottom: 8px; padding-bottom: 3px; }
+  .grid-print { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px; }
+  .table-print { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  .table-print th { background: #00c4cc; color: #fff; text-align: left; padding: 8px; font-size: 12px; }
+  .table-print td { padding: 8px; border-bottom: 1px solid #eee; font-size: 12px; }
+  .obs-box-print { border: 1px solid #ccc; padding: 10px; min-height: 100px; font-size: 12px; margin-top: 5px; white-space: pre-wrap; }
+  .footer-print { margin-top: 40px; border-top: 1px solid #000; width: 250px; font-size: 12px; padding-top: 5px; }
+}
+/* PDF */
+<!-- CSS separado pro PDF -->
+<style>
+/* Layout PDF */
+#print-layout {
+  display: none; /* só aparece quando gerar PDF */
+  width: 210mm;
+  min-height: 297mm;
+  padding: 20mm;
+  background: #fff;
+  color: #000;
+  font-family: 'Inter', sans-serif;
+  box-sizing: border-box;
+}
+
+/* Header */
+.header-print {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 2px solid #000;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+.header-print img {
+  height: 50px;
+}
+
+.header-info-print {
+  text-align: right;
+  font-size: 10px;
+}
+
+/* Título */
+.title-print {
+  font-size: 18px;
+  font-weight: bold;
+  margin: 15px 0;
+}
+
+/* Seções */
+.section-print {
+  margin-bottom: 20px;
+}
+
+.section-title-print {
+  font-size: 14px;
+  font-weight: bold;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 8px;
+  padding-bottom: 3px;
+}
+
+/* Grid de informações */
+.grid-print {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  font-size: 12px;
+}
+
+/* Tabela de serviços */
+.table-print {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.table-print th {
+  background: #00c4cc;
+  color: #fff;
+  text-align: left;
+  padding: 8px;
+  font-size: 12px;
+}
+
+.table-print td {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+  font-size: 12px;
+}
+
+/* Observações */
+.obs-box-print {
+  border: 1px solid #ccc;
+  padding: 10px;
+  min-height: 100px;
+  font-size: 12px;
+  margin-top: 5px;
+  white-space: pre-wrap;
+}
+
+/* Footer */
+.footer-print {
+  margin-top: 40px;
+  border-top: 1px solid #000;
+  width: 250px;
+  font-size: 12px;
+  padding-top: 5px;
+}
+
+/* Botões e highlights (opcional) */
+.status-tag {
+  padding: 8px 12px;
+  background: #fff3cd;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.summary-box {
+  padding: 10px;
+  border-radius: 8px;
+  background: #f5f5f5;
+  margin-bottom: 10px;
+}
+
+.summary-box p {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+/* ===== ESTILO PADRÃO MODERNO ===== */
+input,
+select {
+  height: 38px;
+}
+
+#categoriaSelect {
+  font-size: .95rem;
+}
+
+/* Hover */
+#categoriaSelect:hover {
+  border-color: #999;
+}
+
+/* Quando clica */
+#categoriaSelect:focus {
+  outline: none;
+  border-color: #1f4ed8;
+  box-shadow: 0 0 0 2px rgba(31, 78, 216, 0.15);
+}
+
+
+
+</style>
+
+
+</style>
+</head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<script>
+function gerarPDF() {
+
+  sincronizar();
+
+  const conteudo = document.getElementById("print-layout").innerHTML;
+
+  const container = document.createElement("div");
+
+  container.innerHTML = `
+    <div style="
+      width:210mm;
+      min-height:297mm;
+      padding:20px;
+      font-family:Arial,sans-serif;
+      background:#fff;
+      color:#000;
+    ">
+      ${conteudo}
+    </div>
+  `;
+
+  document.body.appendChild(container);
+
+  setTimeout(() => {
+
+    html2pdf().from(container).outputPdf('blob').then(function (pdfBlob) {
+
+      const url = URL.createObjectURL(pdfBlob);
+      window.open(url, '_blank');
+
+      document.body.removeChild(container);
+
+    });
+
+  }, 200);
+}
+
+function gerarPDFSemValor() {
+    sincronizar();
+
+    const conteudo = document.getElementById("print-layout").innerHTML;
+    const container = document.createElement("div");
+
+    container.innerHTML = `
+        <div style="
+            width:210mm;
+            min-height:297mm;
+            padding:20px;
+            font-family:Arial,sans-serif;
+            background:#fff;
+            color:#000;tendi 
+        ">
+            ${conteudo}
+        </div>
+    `;
+
+    // Limpa a tabela de serviços e adiciona apenas descrição + qtd, sem coluna de preço
+    const corpoPrint = container.querySelector('#p_tabela_servicos tbody');
+    const theadPrint = container.querySelector('#p_tabela_servicos thead');
+
+    // Remove coluna de total do cabeçalho
+    if(theadPrint) {
+        theadPrint.innerHTML = `
+            <tr>
+                <th>Descrição do Serviço</th>
+                <th style="width: 80px; text-align: center;">Qtd</th>
+            </tr>
+        `;
+    }
+
+    corpoPrint.innerHTML = '';
+    servicosEscolhidos.forEach(s => {
+        corpoPrint.innerHTML += `
+            <tr>
+                <td>${s.nome}</td>
+                <td style="text-align:center">${s.qtd}</td>
+            </tr>
+        `;
+    });
+
+    // Atualiza os totais para "---" ou remove visualmente
+    container.querySelectorAll('#total, #valorServico').forEach(el => el.innerText = '---');
+
+    document.body.appendChild(container);
+
+    setTimeout(() => {
+        html2pdf().from(container).outputPdf('blob').then(function(pdfBlob) {
+            const url = URL.createObjectURL(pdfBlob);
+            window.open(url, '_blank');
+            document.body.removeChild(container);
+        });
+    }, 200);
+}
+
+
+</script>
+
+<body>
+<div class="container">
+
+  <div class="form-content-area">
+    <h1 style="display:flex; align-items:center; gap:10px;">
+      Ordem de Serviço
+      {% if os %}
+        <span style="
+          background:#2e2e2e;
+          color:#ffffff;
+          padding:4px 10px;
+          border-radius:8px;
+          font-size:20px;
+        ">
+          Nº {{ os.numero_os }}
+        </span>
+      {% endif %}
+    </h1>
+    
+    {% if erro %}
+    <div class="error-banner">
+        <strong>⚠️ Erro:</strong> {{ erro }}
+    </div>
+    {% endif %}
+
+    <form method="POST"
+      action="{% if os %}{% url 'editar_ordem_servicos' os.id %}{% else %}{% url 'adicionar_ordem_servico' %}{% endif %}"
+      id="formOS">
+      {% csrf_token %}
+      
+      <input type="hidden" name="itens_servico" id="itens_servico_input" value="[]">
+
+      <div style="display:grid;grid-template-columns:2fr 2fr 1fr 1fr;gap:10px; align-items: end;">
+        <div>
+          <label>Cliente</label>
+          <input
+            type="text"
+            id="in_cliente"
+            name="in_cliente"
+            list="lista_clientes"
+            autocomplete="off"
+            value="{% if os %}{{ os.cliente }}{% else %}{{ nome_fantasia }}{% endif %}"
+            oninput="sincronizar()"
+            placeholder="Digite ou selecione o cliente"
+            required
+          >
+          <datalist id="lista_clientes">
+            {% for c in clientes_lista %}
+              <option value="{{ c.nome_fantasia }}">
+            {% endfor %}
+          </datalist>
+        </div>
+
+        <div>
+          <label>Funcionário</label>
+          <input
+            type="text"
+            id="in_funcionario"
+            name="in_funcionario"
+            list="lista_funcionarios"
+            autocomplete="off"
+            value="{% if os %}{{ os.funcionario }}{% endif %}"
+            oninput="sincronizar()"
+            placeholder="Digite ou selecione o funcionário"
+          >
+          <datalist id="lista_funcionarios">
+            {% for f in funcionarios_lista %}
+              <option value="{{ f.nome_fantasia }}">
+            {% endfor %}
+          </datalist>
+        </div>
+        <div><label>Previsão de serviço</label><input type="date" id="in_data" name="in_data" onblur="atualizarObsAutomaticamente()" value="{{ os.data_faturamento|date:'Y-m-d' }}" oninput="sincronizar()"></div>
+        <div><label>Nº de Parcelas</label>
+          <select id="in_parcelas" name="in_parcelas">
+            <option value="À Vista" {% if os.parcelas == "À Vista" %}selected{% endif %}>À Vista</option>
+            <option value="1 Parcela" {% if os.parcelas == "1 Parcela" %}selected{% endif %}>1 Parcela</option>
+            <option value="28 Parcelas" {% if os.parcelas == "28 Parcelas" %}selected{% endif %}>28 Parcela</option>
+            <option value="Para 15 dias" {% if os.parcelas == "Para 15 dias" %}selected{% endif %}>Para 15 dias</option>
+            <option value="Para 28 dias" {% if os.parcelas == "Para 28 dias" %}selected{% endif %}>Para 28 dias</option>
+            <option value="Para 30 dias" {% if os.parcelas == "Para 30 dias" %}selected{% endif %}>Para 30 dias</option>
+            <option value="Para 90 dias" {% if os.parcelas == "Para 90 dias" %}selected{% endif %}>Para 90 dias</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <div class="tab active" data-section="servico">Serviço</div>
+        <div class="tab" data-section="produtos">Lista de Produtos</div>
+        <div class="tab" data-section="despesas">Despesas Reembolsáveis</div>
+        <div class="tab" data-section="info">Informações Adicionais</div>
+        <div class="tab" data-section="email">E-mail</div>
+        <div class="tab" data-section="obs">Observações</div>
+      </div>
+
+      <div class="content">
+        <div class="section active" id="servico">
+          <button type="button" id="abrir_modal" class="btn-select-service">+ Selecionar Serviço</button>
+          <table class="table-servicos">
+            <thead>
+              <tr>
+                <th>Descrição</th>
+                <th style="width: 80px;">Qtd</th>
+                <th style="width: 140px;">Preço Unit.</th>
+                <th style="width: 140px;">Subtotal</th>
+                <th style="width: 40px;"></th>
+              </tr>
+            </thead>
+            <tbody id="corpoTabela"></tbody>
+          </table>
+        </div>
+
+        <div class="section" id="produtos"><label>Produtos</label><textarea name="produtos" rows="6">{{ os.produtos|default:'' }}</textarea></div>
+        <div class="section" id="despesas"><label>Despesas</label><textarea name="despesas" rows="6">{{ os.despesas|default:'' }}</textarea></div>
+
+        <div class="section" id="info">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+            <div>
+              <label>Categoria</label>
+              <select name="categoria" id="id_categoria">
+                <option value="">Selecione...</option>
+
+                <optgroup label="Receitas">
+                  <option value="Clientes - Serviços Prestados"
+                    {% if os.categoria == "Clientes - Serviços Prestados" %}selected{% endif %}>
+                    Clientes - Serviços Prestados
+                  </option>
+
+                  <option value="Receitas Diretas"
+                    {% if os.categoria == "Receitas Diretas" %}selected{% endif %}>
+                    Receitas Diretas
+                  </option>
+
+                  <option value="Receitas Indiretas"
+                    {% if os.categoria == "Receitas Indiretas" %}selected{% endif %}>
+                    Receitas Indiretas
+                  </option>
+
+                  <option value="Rendimentos de Aplicações"
+                    {% if os.categoria == "Rendimentos de Aplicações" %}selected{% endif %}>
+                    Rendimentos de Aplicações
+                  </option>
+                </optgroup>
+
+                <optgroup label="Devoluções">
+                  <option value="Devoluções de Compra de Ativo"
+                    {% if os.categoria == "Devoluções de Compra de Ativo" %}selected{% endif %}>
+                    Devoluções de Compra de Ativo
+                  </option>
+
+                  <option value="Devoluções de Compra de Serviços"
+                    {% if os.categoria == "Devoluções de Compra de Serviços" %}selected{% endif %}>
+                    Devoluções de Compra de Serviços
+                  </option>
+                </optgroup>
+
+                <optgroup label="Outras Entradas">
+                  <option value="Adiantamento de Clientes"
+                    {% if os.categoria == "Adiantamento de Clientes" %}selected{% endif %}>
+                    Adiantamento de Clientes
+                  </option>
+
+                  <option value="Reembolso de Despesas"
+                    {% if os.categoria == "Reembolso de Despesas" %}selected{% endif %}>
+                    Reembolso de Despesas
+                  </option>
+
+                  <option value="Empréstimos Bancários"
+                    {% if os.categoria == "Empréstimos Bancários" %}selected{% endif %}>
+                    Empréstimos Bancários
+                  </option>
+
+                  <option value="Aumento de Capital"
+                    {% if os.categoria == "Aumento de Capital" %}selected{% endif %}>
+                    Aumento de Capital
+                  </option>
+
+                  <option value="Venda de Ativos"
+                    {% if os.categoria == "Venda de Ativos" %}selected{% endif %}>
+                    Venda de Ativos
+                  </option>
+
+                  <option value="Empréstimo"
+                    {% if os.categoria == "Empréstimo" %}selected{% endif %}>
+                    Empréstimo
+                  </option>
+                </optgroup>
+              </select>
+            </div>
+
+            <div><label>Site</label><input name="conta_corrente" id="in_site" onblur="atualizarObsAutomaticamente()" value="{{ os.conta_corrente|default:'' }}"></div>
+            <div><label>Projeto</label><input id="in_projeto" name="in_projeto" value="{{ os.projeto|default:'' }}" oninput="sincronizar()"></div>
+            <div><label>Origem</label><input name="origem" value="GRS Serviços" readonly></div>
+          </div>
+          <br>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+            <div><label>Nº Pedido Cliente</label><input id="in_pedido" name="in_pedido" value="{{ os.pedido_cliente|default:'' }}" oninput="atualizarObsAutomaticamente()"></div>
+            <div>
+              <label>Controle cliente</label>
+              <input name="codigo_cei" value="{{ os.codigo_cei|default:'' }}" onblur="atualizarObsAutomaticamente()">
+            </div>
+            <div><label>Nome do Site</label><input name="contato" id="in_nome_site" onblur="atualizarObsAutomaticamente()" value="{{ os.contato|default:'' }}"></div>
+            <div><label>Cidade Prestação</label><input name="cidade_prestacao" value="{{ os.cidade_prestacao|default:'' }}" oninput="atualizarObsAutomaticamente()"></div>
+          </div>
+          <br>
+          <div style="display:grid;grid-template-columns:2fr 2fr;gap:10px">
+
+              <!-- COLUNA ESQUERDA -->
+              <div>
+                <label>Informações adicionais</label>
+                <textarea id="in_info_adicionais"
+                          name="dados_nf"
+                          rows="4"
+                          oninput="atualizarObsAutomaticamente()">{{ os.dados_nf|default:'' }}</textarea>
+              </div>
+
+              <!-- COLUNA DIREITA -->
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;align-content:start;">
+
+                  <div>
+                      <label>CEP</label>
+                      <input name="codigo_obra" value="{{ os.codigo_obra|default:'' }}" oninput="atualizarObsAutomaticamente()">
+                  </div>
+
+                  <div>
+                    <label>Nº Contrato Venda</label>
+                    <input name="contrato_venda" value="{{ os.contrato_venda|default:'' }}">
+                  </div>
+
+                  <div>
+                    <label>Hora</label>
+                    <input 
+                      name="hora"
+                      id="id_hora"
+                      value="{{ os.hora|default:'' }}"
+                      onblur="formatarHora(); atualizarObsAutomaticamente();"
+                      placeholder="00:00"
+                    >
+                  </div>
+
+                  <div>
+                    <label>Atividade</label>
+                    <select name="atividade" id="in_atividade" onchange="atualizarObsAutomaticamente()">
+                        <option value="">Selecione...</option>
+
+                        <option value="102 - Preventiva" {% if os.atividade == "102 - Preventiva" %}selected{% endif %}>102 - Preventiva</option>
+
+                        <option value="104 - Instalação" {% if os.atividade == "104 - Instalação" %}selected{% endif %}>104 - Instalação</option>
+
+                        <option value="106 - Desinstalação" {% if os.atividade == "106 - Desinstalação" %}selected{% endif %}>106 - Desinstalação</option>
+
+                        <option value="107 - Ativação" {% if os.atividade == "107 - Ativação" %}selected{% endif %}>107 - Ativação</option>
+
+                        <option value="108 - Remanejamento" {% if os.atividade == "108 - Remanejamento" %}selected{% endif %}>108 - Remanejamento</option>
+
+                        <option value="109 - Reinstalação" {% if os.atividade == "109 - Reinstalação" %}selected{% endif %}>109 - Reinstalação</option>
+
+                        <option value="111 - Acompanhamento" {% if os.atividade == "111 - Acompanhamento" %}selected{% endif %}>111 - Acompanhamento</option>
+
+                        <option value="113 - Reforma" {% if os.atividade == "113 - Reforma" %}selected{% endif %}>113 - Reforma</option>
+
+                        <option value="115 - Infra-Estrutura" {% if os.atividade == "115 - Infra-Estrutura" %}selected{% endif %}>115 - Infra-Estrutura</option>
+
+                        <option value="144 - Atualização" {% if os.atividade == "144 - Atualização" %}selected{% endif %}>144 - Atualização</option>
+
+                        <option value="147 - Atualização" {% if os.atividade == "147 - Atualização" %}selected{% endif %}>147 - Atualização</option>
+
+                        <option value="161 - Atualização" {% if os.atividade == "161 - Atualização" %}selected{% endif %}>161 - Atualização</option>
+
+                        <option value="186 - Desconexão" {% if os.atividade == "186 - Desconexão" %}selected{% endif %}>186 - Desconexão</option>
+
+                        <option value="187 - Reconexão" {% if os.atividade == "187 - Reconexão" %}selected{% endif %}>187 - Reconexão</option>
+
+                        <option value="191 - Pré-site" {% if os.atividade == "191 - Pré-site" %}selected{% endif %}>191 - Pré-site</option>
+
+                        <option value="193 - Reforma" {% if os.atividade == "193 - Reforma" %}selected{% endif %}>193 - Reforma</option>
+
+                    </select>
+                </div>
+
+              </div>
+
+          </div>
+          <br>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div><label>Endereço</label><input name="encapsulamento" value="{{ os.encapsulamento|default:'' }}" oninput="atualizarObsAutomaticamente()"></div>
+            <div><label>Data de faturamento</label><input type="date" name="data_servico" value="{{ os.data_servico|date:'Y-m-d' }}"></div>
+          </div>
+        </div>
+
+        <div class="section" id="email"><label>E-mail</label><textarea name="email" rows="6">{{ os.email|default:'' }}</textarea></div>
+        <div class="section" id="obs"><label>Observações Internas</label><textarea id="in_obs" name="in_obs" oninput="sincronizar()">{{ os.observacoes|default:'' }}</textarea></div>
+      </div>
+
+      <div class="footer-summary">
+        <div class="summary-box">
+          <p><span>Serviços</span><span id="valorServico">R$ 0,00</span></p>
+          <p><span>Produtos</span><span>R$ 0,00</span></p>
+          <p><strong>Total</strong><strong id="total">R$ 0,00</strong></p>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="sidebar">
+    <button type="submit" form="formOS" class="btn-side" style="color: #00a18e; font-size: 15px;">💾 <strong>Salvar</strong></button>
+    <button type="button" class="btn-side" onclick="window.location.reload()">➕ Incluir</button>
+    <button type="button" class="btn-side" onclick="window.print()">📄 Imprimir</button>
+    <button type="button" class="btn-side">📋 Duplicar</button>
+    <button type="button" class="btn-side" onclick="gerarPDF()">📄 Gerar PDF com valores</button>
+    <button type="button" class="btn-side" onclick="gerarPDFSemValor()">📄 Gerar PDF sem valores</button>
+
+
+    <button type="button" class="btn-side">✔️ Conferir</button>
+    <hr style="opacity: 0.1; margin: 5px 0;">
+    <button type="button" class="btn-side">📎 Anexos</button>
+    {% if os %}
+    <form method="POST" action="{% url 'excluir_ordem_servico' os.id %}" style="margin-top:auto;">
+        {% csrf_token %}
+        
+        <button type="submit"
+            class="btn-side"
+            style="color:#d93025">
+            🗑️ Excluir
+        </button>
+    </form>
+    {% endif %}
+
+    <a href="{% url 'oportunidade_servicos' %}" class="voltar">Voltar ao Painel</a>
+  </div>
+
+</div>
+
+<div id="print-layout">
+  <div class="header-print">
+    <div><img src="{% static 'img/grs-logo.png' %}" alt="Logo" style="height: 50px;"></div>
+    <div class="header-info-print">
+      <strong>GRS SERVICOS LTDA</strong><br>
+      CNPJ: 27.508.745/0001-12<br>
+      AV ENG LUIZ CARLOS BERRINI, 1681 - SL 111/112<br>
+      São Paulo - SP - CEP: 04571-011
+    </div>
+  </div>
+  <div class="title-print">OS Programada</div>
+  <div class="section-print">
+    <div class="section-title-print">Informações do Cliente</div>
+    <div class="grid-print">
+      <div><strong>Cliente:</strong> <span id="p_cliente">---</span></div>
+      <div><strong>Funcionário:</strong> <span id="p_funcionario">---</span></div>
+      <div><strong>Data do Serviço:</strong> <span id="p_data">---</span></div>
+    </div>
+  </div>
+  <div class="section-print">
+    <div class="section-title-print">Lista dos Serviços</div>
+    <table class="table-print" id="p_tabela_servicos">
+      <thead>
+        <tr>
+          <th>Descrição do Serviço</th>
+          <th style="width: 80px; text-align: center;">Qtd</th>
+          <th style="width: 120px; text-align: right;">Total</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <div class="section-print">
+    <div class="section-title-print">Outras Informações</div>
+    <div class="grid-print">
+      <div><strong>Projeto:</strong> <span id="p_projeto">---</span></div>
+      <div><strong>Chamado:</strong> <span id="p_pedido">---</span></div>
+    </div>
+    <div style="margin-top: 10px;"><strong>Observações:</strong></div>
+    <div class="obs-box-print" id="p_obs">---</div>
+  </div>
+  <div class="footer-print">Responsável <span id="p_ass_cliente">Cliente</span></div>
+</div>
+
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <span onclick="fechar()" style="float:right; cursor:pointer; font-weight:bold; font-size: 20px;">&times;</span>
+    <h2>Selecionar Serviço</h2>
+    <input type="text" id="pesquisaServico" placeholder="Pesquisar..." onkeyup="filtrarServicos()" style="margin: 15px 0;">
+    <ul id="servicosLista" style="list-style:none;">
+      {% for s in servicos %}
+        <li onclick="adicionarServico('{{ s.descricao_resumida }}', '{{ s.preco_unitario|stringformat:'.2f' }}')" style="padding:12px; border-bottom:1px solid #eee; cursor:pointer;">
+          {{ s.descricao_resumida }} - <strong>R$ {{ s.preco_unitario }}</strong>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+<script>
+function formatarHora() {
+    let input = document.getElementById("id_hora");
+    let valor = input.value.replace(/\D/g, ''); // remove tudo que não é número
+
+    if (!valor) {
+        input.value = '';
+        return;
+    }
+
+    // Se digitar só 1 número → 9 = 09:00
+    if (valor.length === 1) {
+        valor = "0" + valor + "00";
+    }
+
+    // Se digitar 2 números → 09 = 09:00
+    if (valor.length === 2) {
+        valor = valor + "00";
+    }
+
+    // Se digitar 3 números → 900 = 09:00
+    if (valor.length === 3) {
+        valor = "0" + valor;
+    }
+
+    // Agora garante que tem 4 dígitos
+    valor = valor.substring(0,4);
+
+    let hora = valor.substring(0,2);
+    let minuto = valor.substring(2,4);
+
+    // Validação básica
+    if (parseInt(hora) > 23) hora = "23";
+    if (parseInt(minuto) > 59) minuto = "59";
+
+    input.value = `${hora}:${minuto}`;
+}
+
+// O editor pode marcar de vermelho, mas o Django vai preencher isso antes da página abrir
+let servicosEscolhidos = [
+    {% if os %}
+        {% for item in os.itens.all %}
+        {
+            id: {{ item.id }},
+            nome: "{{ item.descricao }}",
+            preco: {{ item.preco_unitario|stringformat:".2f" }},
+            qtd: {{ item.quantidade }}
+        },
+        {% endfor %}
+    {% endif %}
+];
+
+// ESSA FUNÇÃO É NOVA: Ela avisa o JS para desenhar a tabela assim que a página abrir
+window.addEventListener('load', function() {
+    renderizar(); 
+    sincronizar();
+});
+
+// ... aqui continuam suas outras funções (adicionarServico, etc)
+
+// Troca de Abas
+const tabs = document.querySelectorAll('.tab');
+const sections = document.querySelectorAll('.section');
+tabs.forEach(t=>{
+  t.onclick=()=>{
+    tabs.forEach(x=>x.classList.remove('active'));
+    sections.forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById(t.dataset.section).classList.add('active');
+  }
+});
+
+function adicionarServico(nome, preco) {
+    // O preço agora vem garantido com ponto do Django
+    const item = {
+        id: Date.now(),
+        nome: nome,
+        preco: parseFloat(preco) || 0,
+        qtd: 1
+    };
+    servicosEscolhidos.push(item);
+    renderizar();
+    fechar();
+}
+
+function removerItem(id) {
+    servicosEscolhidos = servicosEscolhidos.filter(s => s.id !== id);
+    renderizar();
+}
+
+function mudarQtd(id, valor) {
+    const item = servicosEscolhidos.find(s => s.id === id);
+    if(item) {
+        item.qtd = parseFloat(valor) || 0;
+        renderizar();
+    }
+}
+
+function renderizar() {
+    const corpo = document.getElementById('corpoTabela');
+    const corpoPrint = document.querySelector('#p_tabela_servicos tbody');
+    corpo.innerHTML = '';
+    corpoPrint.innerHTML = '';
+    let totalOS = 0;
+
+    servicosEscolhidos.forEach(s => {
+        const sub = s.preco * s.qtd;
+        totalOS += sub;
+
+        corpo.innerHTML += `
+            <tr>
+                <td>${s.nome}</td>
+                <td><input type="number" value="${s.qtd}" min="1" onchange="mudarQtd(${s.id}, this.value)" style="width:100px"></td>
+                <td>R$ ${s.preco.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                <td><strong>R$ ${sub.toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong></td>
+                <td><button type="button" class="btn-del" onclick="removerItem(${s.id})">✕</button></td>
+            </tr>
+        `;
+
+        corpoPrint.innerHTML += `
+            <tr>
+                <td>${s.nome}</td>
+                <td style="text-align:center">${s.qtd}</td>
+                <td style="text-align:right">R$ ${sub.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+            </tr>
+        `;
+    });
+
+    // ATUALIZAÇÃO CRÍTICA: Atualiza o input hidden para o Django ler
+    document.getElementById('itens_servico_input').value = JSON.stringify(servicosEscolhidos);
+    
+    const totalFormatado = totalOS.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+    document.getElementById('valorServico').innerText = totalFormatado;
+    document.getElementById('total').innerText = totalFormatado;
+}
+
+function sincronizar() {
+    document.getElementById('p_cliente').innerText = document.getElementById('in_cliente').value || '---';
+    document.getElementById('p_funcionario').innerText = document.getElementById('in_funcionario').value || '---';
+    document.getElementById('p_data').innerText = document.getElementById('in_data').value || '---';
+    document.getElementById('p_projeto').innerText = document.getElementById('in_projeto').value || '---';
+    document.getElementById('p_pedido').innerText = document.getElementById('in_pedido').value || '---';
+    document.getElementById('p_obs').innerText = document.getElementById('in_obs').value || '---';
+    document.getElementById('p_ass_cliente').innerText = document.getElementById('in_cliente').value || 'Cliente';
+}
+
+function fechar(){ document.getElementById('modal').style.display='none' }
+document.getElementById('abrir_modal').onclick=()=>{document.getElementById('modal').style.display='flex'}
+
+function filtrarServicos(){
+  const input = document.getElementById("pesquisaServico").value.toUpperCase();
+  const li = document.getElementById("servicosLista").getElementsByTagName("li");
+  for (let i = 0; i < li.length; i++){
+    const txt = li[i].textContent || li[i].innerText;
+    li[i].style.display = txt.toUpperCase().indexOf(input) > -1 ? "" : "none";
+  }
+}
+
+
+function atualizarObsAutomaticamente() {
+
+    const dataInput = document.getElementById('in_data')?.value || '';
+
+      let data = '';
+
+      if (dataInput) {
+          const partes = dataInput.split('-'); // [2026, 02, 27]
+          data = `${partes[2]}/${partes[1]}/${partes[0]}`;
+      }
+    const hora = document.getElementById('id_hora')?.value || '';
+    const endereco = document.querySelector('[name="encapsulamento"]')?.value || '';
+    const cep = document.querySelector('[name="codigo_obra"]')?.value || '';
+    const cidade = document.querySelector('[name="cidade_prestacao"]')?.value || '';
+    const nomeSite = document.getElementById('in_nome_site')?.value || '';
+    const site = document.getElementById('in_site')?.value || '';
+    const controle = document.getElementById('in_pedido')?.value || '';
+    const atividade = document.querySelector('[name="atividade"]')?.value || '';
+    const infoAdicionais = document.getElementById('in_info_adicionais')?.value || '';
+
+    let texto =
+`Data: ${data};
+Hora: ${hora};
+endereço: ${endereco}; CEP: ${cep}; cidade: ${cidade};
+Nome do site: ${nomeSite};
+Site: ${site};
+Nº Controle: ${controle};
+Atividade: ${atividade};
+
+
+Task Description: ${infoAdicionais}
+`;
+
+    document.getElementById('in_obs').value = texto;
+}
+
+</script>
+</body>
+</html>

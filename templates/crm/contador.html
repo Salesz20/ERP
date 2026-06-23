@@ -2,56 +2,225 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compras - GRS Serviços</title>
-    <link rel="icon" href="{% static 'img/grs-logo.png' %}" type="image/png">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .dashboard {
-            background-color: #fff;
-            padding: 40px;
-            border-radius: 8px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.2);
-            width: 100%;
-            max-width: 600px;
-            text-align: center;
-            border-top: 5px solid #FFC107;
-        }
-        .dashboard h1 {
-            margin-bottom: 20px;
-        }
-        .dashboard p {
-            font-size: 18px;
-            color: #333;
-        }
-        .dashboard a {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #FFC107;
-            color: #111;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-        }
-        .dashboard a:hover {
-            background-color: #e0a800;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contador - GRS Serviços</title>
+
+<link rel="icon" href="{% static 'img/grs-logo.png' %}" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+    font-family:'Inter', sans-serif;
+    min-height:100vh;
+    background:linear-gradient(135deg,#0d0d0d,#1a1a1a);
+    color:#fff;
+    padding-top:70px;
+}
+
+/* --- TOPBAR --- */
+.topbar {
+    width:100%;
+    height:60px;
+    background:#0c0c0c;
+    border-bottom:1px solid #1a1a1a;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 25px;
+    position:fixed;
+    top:0;
+    left:0;
+    z-index:9999;
+}
+
+.topbar-left {
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.topbar-left img {
+    width:32px;
+    height:32px;
+}
+
+.topbar-left span {
+    font-size:18px;
+    font-weight:600;
+}
+
+.topbar-right {
+    display:flex;
+    align-items:center;
+    gap:22px;
+}
+
+.icon-btn {
+    color:#e5e5e5;
+    font-size:20px;
+    cursor:pointer;
+    transition:.2s;
+}
+.icon-btn:hover { color:#fff; }
+
+.user-box {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:6px 12px;
+    border:1px solid #1f1f1f;
+    border-radius:8px;
+    background:#141414;
+}
+
+/* --- CONTEÚDO --- */
+.container {
+    width:100%;
+    max-width:1300px;
+    margin:0 auto;
+    padding:40px;
+    text-align:center;
+}
+
+h1 {
+    font-size:34px;
+    margin-bottom:10px;
+}
+
+.subtitle {
+    color:#ccc;
+    font-size:16px;
+    margin-bottom:50px;
+}
+
+/* --- CARDS --- */
+.cards {
+    display:flex;
+    justify-content:center;
+    gap:40px;
+    flex-wrap:wrap;
+}
+
+a.card {
+    background:linear-gradient(135deg,#ffffff,#e7e7e7);
+    color:#111;
+    border-radius:16px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.3);
+    padding:30px 25px;
+    width:260px;
+    height:280px;
+    text-align:center;
+    transition:all .3s ease;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    text-decoration:none;
+}
+
+a.card:hover {
+    transform:translateY(-8px);
+    box-shadow:0 18px 40px rgba(255,255,255,0.15);
+}
+
+.card i {
+    font-size:40px;
+    color:#000;
+    margin-bottom:15px;
+}
+
+.card h2 {
+    font-size:18px;
+    font-weight:600;
+    color:#000;
+}
+
+.card p {
+    font-size:14px;
+    color:#333;
+}
+
+/* --- VOLTAR --- */
+a.voltar {
+    display:inline-block;
+    margin-top:50px;
+    padding:12px 25px;
+    background:#fff;
+    color:#000;
+    text-decoration:none;
+    border-radius:10px;
+    font-weight:600;
+    transition:.3s;
+}
+a.voltar:hover {
+    background:#e0e0e0;
+    transform:scale(1.05);
+}
+</style>
 </head>
+
 <body>
-    <div class="dashboard">
-        <h1>Contador</h1>
-        <p>Bem-vindo ao módulo do Contador!</p>
-        <a href="{% url 'selecionar' %}">Voltar para seleção</a>
+
+<div class="topbar">
+    <div class="topbar-left">
+        <img src="{% static 'img/grs-logo.png' %}" alt="GRS">
+        <span>GRS Serviços</span>
     </div>
+
+    <div class="topbar-right">
+        <i class="fa-solid fa-table-cells-large icon-btn"></i>
+        <i class="fa-solid fa-bell icon-btn"></i>
+        <i class="fa-solid fa-gear icon-btn"></i>
+        <div class="user-box">
+            <i class="fa-solid fa-user"></i>
+            <span>{{ user.username }}</span>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <h1>Contador</h1>
+    <p class="subtitle">Gestão contábil, fiscal e integração com o contador.</p>
+
+    <div class="cards">
+
+        <a href="{% url 'incluir_contador' %}" class="card">
+            <i class="fas fa-user-tie"></i>
+            <h2>1. Contador</h2>
+            <p>Vincule e gerencie o contador responsável pela empresa.</p>
+        </a>
+
+        <a href="{% url 'configurar_plano' %}" class="card">
+            <i class="fas fa-list-ol"></i>
+            <h2>2. Plano de Contas</h2>
+            <p>Configure categorias e estrutura contábil.</p>
+        </a>
+
+        <a href="{% url 'integracao_contabil' %}" class="card">
+            <i class="fas fa-sync"></i>
+            <h2>3. Integrações</h2>
+            <p>Integração contábil e fiscal automática.</p>
+        </a>
+
+        <a href="{% url 'gerar_arquivos' %}" class="card">
+            <i class="fas fa-file-export"></i>
+            <h2>4. Arquivos</h2>
+            <p>Geração de arquivos e relatórios contábeis.</p>
+        </a>
+
+        <a href="{% url 'fechamento' %}" class="card">
+            <i class="fas fa-lock"></i>
+            <h2>5. Fechamento</h2>
+            <p>Encerramento mensal e controle de competência.</p>
+        </a>
+
+    </div>
+
+    <a href="{% url 'selecionar' %}" class="voltar">Voltar</a>
+</div>
+
 </body>
 </html>

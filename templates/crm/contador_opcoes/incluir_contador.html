@@ -1,0 +1,220 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GRS - Configuração do Contador</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        background: #0f172a; /* Azul Marinho Profundo (Slate 900) */
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        padding: 40px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+    }
+
+    .container {
+        background: #ffffff;
+        width: 100%;
+        max-width: 950px;
+        padding: 40px;
+        border-radius: 24px; /* Bordas mais arredondadas e modernas */
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+    }
+
+    h1 {
+        color: #1e293b;
+        font-size: 26px;
+        margin-bottom: 8px;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+    }
+
+    .sub-header {
+        margin-bottom: 30px;
+        border-bottom: 1px solid #f1f5f9;
+        padding-bottom: 20px;
+    }
+
+    .sub-header p {
+        font-size: 15px;
+        color: #64748b;
+    }
+
+    .alert-premium {
+        background: #fefce8; /* Amarelo suave */
+        border: 1px solid #fef08a;
+        padding: 15px;
+        border-radius: 12px;
+        font-size: 14px;
+        color: #854d0e;
+        margin-bottom: 30px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 600;
+    }
+
+    .alert-premium i {
+        color: #ca8a04;
+        font-size: 18px;
+    }
+
+    /* Input Style: Floating Labels Custom */
+    .input-box {
+        position: relative;
+        margin-bottom: 20px;
+        background: #f8fafc;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 10px 16px;
+        transition: all 0.3s ease;
+    }
+
+    .input-box:focus-within {
+        border-color: #1e293b;
+        background: #fff;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .input-box label {
+        display: block;
+        font-size: 11px;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: #94a3b8;
+        margin-bottom: 4px;
+        letter-spacing: 0.5px;
+    }
+
+    input, textarea {
+        width: 100%;
+        border: none;
+        outline: none;
+        font-size: 15px;
+        color: #1e293b;
+        background: transparent;
+        font-weight: 500;
+    }
+
+    textarea { resize: none; }
+
+    .row {
+        display: flex;
+        gap: 15px;
+    }
+
+    .col-3 { flex: 3; }
+    .col-2 { flex: 2; }
+    .col-1 { flex: 1; }
+
+    /* Botão Estilo GRS Premium */
+    .btn-save {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        max-width: 300px;
+        margin: 30px auto 0;
+        padding: 16px;
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        color: #f1f5f9;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        box-shadow: 0 10px 15px -3px rgba(30, 41, 59, 0.4);
+    }
+
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 20px 25px -5px rgba(30, 41, 59, 0.5);
+    }
+
+    .btn-save i {
+        margin-right: 10px;
+    }
+
+    @media (max-width: 768px) {
+        .row { flex-direction: column; gap: 0; }
+        body { padding: 15px; }
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="sub-header">
+        <h1>Contabilidade Parceira</h1>
+        <p>Configure os dados do escritório para automação de relatórios da <strong>GRS Serviços</strong>.</p>
+    </div>
+
+    <div class="alert-premium">
+        <i class="fas fa-crown"></i>
+        <span>Integração Premium: O envio de documentos será feito automaticamente no dia 01 de cada mês.</span>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="row">
+            <div class="col-3">
+                <div class="input-box">
+                    <label>Escritório Contábil</label>
+                    <input type="text" name="escritorio" placeholder="Nome da empresa">
+                </div>
+            </div>
+            <div class="col-2">
+                <div class="input-box">
+                    <label>CNPJ</label>
+                    <input type="text" name="cnpj" placeholder="00.000.000/0000-00">
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-1">
+                <div class="input-box">
+                    <label>Responsável / Contato</label>
+                    <input type="text" name="contato_nome" placeholder="Ex: Lukas Sales">
+                </div>
+            </div>
+            <div class="col-1">
+                <div class="input-box">
+                    <label>E-mail Principal</label>
+                    <input type="email" name="contato_email" placeholder="contato@escritorio.com">
+                </div>
+            </div>
+            <div class="col-1">
+                <div class="input-box">
+                    <label>Telefone</label>
+                    <input type="text" name="telefone" placeholder="(00) 00000-0000">
+                </div>
+            </div>
+        </div>
+
+        <div class="input-box">
+            <label>Cópia de E-mails (Integração Automática)</label>
+            <textarea name="outros_emails" rows="2" placeholder="usuario1@mail.com, usuario2@mail.com"></textarea>
+        </div>
+
+        <button type="submit" class="btn-save">
+            <i class="fas fa-save"></i> Salvar Configurações
+        </button>
+    </form>
+</div>
+<a href="{% url 'contador' %}" class="voltar">Voltar</a>
+
+</body>
+</html>

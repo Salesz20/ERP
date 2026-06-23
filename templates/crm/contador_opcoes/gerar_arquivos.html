@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Arquivos Contábeis</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-slate-100 text-slate-800">
+
+<header class="bg-slate-900 text-white p-5 shadow">
+    <h1 class="text-xl font-semibold">Arquivos Contábeis</h1>
+    <p class="text-sm opacity-80">Geração manual de arquivos e relatórios contábeis</p>
+</header>
+
+<main class="max-w-6xl mx-auto p-6 space-y-8">
+
+    <!-- ================= PERÍODO ================= -->
+    <section class="bg-white rounded-2xl shadow p-6">
+        <h2 class="text-lg font-semibold mb-4">1. Período</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="text-sm">Data Inicial</label>
+                <input type="date" class="w-full border rounded-xl p-2">
+            </div>
+
+            <div>
+                <label class="text-sm">Data Final</label>
+                <input type="date" class="w-full border rounded-xl p-2">
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= FINANCEIRO ================= -->
+    <section class="bg-white rounded-2xl shadow p-6 space-y-10">
+        <h2 class="text-lg font-semibold">2. Financeiro</h2>
+
+        <!-- CONTAS A RECEBER -->
+        <div class="border rounded-xl p-5 space-y-5">
+            <h3 class="font-semibold text-base">Contas a Receber</h3>
+
+            <div>
+                <label class="text-sm font-medium">Colunas para Exportação</label>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2 text-sm">
+                    <label><input type="checkbox" checked> Cliente</label>
+                    <label><input type="checkbox" checked> Valor</label>
+                    <label><input type="checkbox" checked> Data de Vencimento</label>
+                    <label><input type="checkbox"> Data de Recebimento</label>
+                    <label><input type="checkbox"> Categoria</label>
+                    <label><input type="checkbox"> Conta Corrente</label>
+                    <label><input type="checkbox"> Número do Documento</label>
+                    <label><input type="checkbox"> Tipo de Documento</label>
+                    <label><input type="checkbox"> Parcela</label>
+                    <label><input type="checkbox"> Código de Barras</label>
+                    <label><input type="checkbox"> Chave NF-e</label>
+                    <label><input type="checkbox"> Departamento</label>
+                </div>
+            </div>
+
+            <div>
+                <label class="text-sm">Data Base</label>
+                <select class="w-full border rounded-xl p-2">
+                    <option>Vencimento</option>
+                    <option>Recebimento</option>
+                    <option>Competência</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- CONTAS A PAGAR -->
+        <div class="border rounded-xl p-5 space-y-5">
+            <h3 class="font-semibold text-base">Contas a Pagar</h3>
+
+            <div>
+                <label class="text-sm font-medium">Colunas para Exportação</label>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2 text-sm">
+                    <label><input type="checkbox" checked> Fornecedor</label>
+                    <label><input type="checkbox" checked> Valor</label>
+                    <label><input type="checkbox" checked> Data de Vencimento</label>
+                    <label><input type="checkbox"> Data de Pagamento</label>
+                    <label><input type="checkbox"> Categoria</label>
+                    <label><input type="checkbox"> Conta Corrente</label>
+                    <label><input type="checkbox"> Número do Documento</label>
+                    <label><input type="checkbox"> Tipo de Documento</label>
+                    <label><input type="checkbox"> Parcela</label>
+                    <label><input type="checkbox"> Código de Barras</label>
+                    <label><input type="checkbox"> Chave NF-e</label>
+                    <label><input type="checkbox"> Departamento</label>
+                </div>
+            </div>
+
+            <div>
+                <label class="text-sm">Data Base</label>
+                <select class="w-full border rounded-xl p-2">
+                    <option>Vencimento</option>
+                    <option>Pagamento</option>
+                    <option>Competência</option>
+                </select>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= FORMATO ================= -->
+    <section class="bg-white rounded-2xl shadow p-6">
+        <h2 class="text-lg font-semibold mb-4">3. Formato do Arquivo</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <label class="flex items-center gap-2">
+                <input type="checkbox" checked> CSV
+            </label>
+            <label class="flex items-center gap-2">
+                <input type="checkbox"> Excel
+            </label>
+            <label class="flex items-center gap-2">
+                <input type="checkbox"> TXT Padrão Contábil
+            </label>
+        </div>
+    </section>
+
+    <!-- ================= GERAR ================= -->
+    <section class="flex justify-end">
+        <button class="bg-emerald-600 text-white px-6 py-3 rounded-xl hover:bg-emerald-700">
+            Gerar Arquivo
+        </button>
+    </section>
+
+</main>
+    <a href="{% url 'contador' %}" class="voltar">Voltar</a>
+</body>
+</html>

@@ -1,0 +1,215 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% if servico %}Editar Serviço{% else %}Adicionar Serviço{% endif %}</title>
+<link rel="icon" href="{% static 'img/grs-logo.png' %}" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Inter', sans-serif; min-height:100vh; background: linear-gradient(135deg, #0d0d0d, #1c1c2e); display:flex; justify-content:center; align-items:flex-start; padding-top:20px; }
+.container { background: #fff; border-radius: 16px; padding: 20px 40px; width: 100%; max-width: 1300px; box-shadow: 0 0 0 4px #1c1c1c; margin-bottom:50px; }
+h1 { font-size:28px; font-weight:600; margin-bottom:25px; color:#000; }
+.header-info { display:grid; gap:10px; margin-bottom:25px; }
+.header-info label { font-weight:600; margin-bottom:5px; color:#000; display:block; }
+.header-info input, select, textarea { padding:8px 10px; border-radius:10px; border:1px solid #ccc; background:#fff; color:#000; font-size:0.95rem; width:100%; box-shadow: inset 0 0 5px rgba(0,0,0,0.1); transition:all 0.3s; }
+.header-info input:focus, select:focus, textarea:focus { border:1px solid #000; outline:none; }
+.tabs { display: flex; gap: 10px; flex-wrap: nowrap; overflow-x: auto; white-space: nowrap; margin-bottom:15px; }
+.tab { padding: 10px 16px; border-radius: 10px; font-weight: 600; cursor: pointer; background: #2a2a2a; transition: all 0.3s; color: #fff; flex-shrink: 0; font-size: 13px; }
+.tab.active { background:#444; color:#fff; }
+.section { display:none; margin-bottom:20px; max-height:300px; overflow-y:auto; }
+.section.active { display:block; }
+button { width:100%; padding:14px; background:linear-gradient(135deg,#363636,#202020); color:#ffffff; border:none; border-radius:10px; font-size:16px; cursor:pointer; font-weight:600; box-shadow:0 5px 15px rgba(0,0,0,0.3); margin-top:10px; }
+a { color:#000000; text-decoration:none; display:block; margin-top:15px; }
+.autocomplete-suggestions { border:1px solid #ccc; max-height:150px; overflow-y:auto; background:#fff; position:absolute; z-index:1000; }
+.autocomplete-suggestion { padding:8px; cursor:pointer; }
+.autocomplete-suggestion:hover { background:#eee; }
+.success-msg { padding:10px; background:#d4edda; color:#155724; border-radius:6px; margin-bottom:15px; }
+</style>
+</head>
+
+<body>
+<div class="container">
+<h1>{% if servico %}Editar Serviço{% else %}Adicionar Serviço{% endif %}</h1>
+
+<form method="post" action="{% if servico %}{% url 'editar_servico' servico.id %}{% else %}{% url 'detalhes_servicos' %}{% endif %}">
+{% csrf_token %}
+
+{% if mensagem_sucesso %}
+<div class="success-msg">{{ mensagem_sucesso }}</div>
+{% endif %}
+
+{% if servico %}
+<input type="hidden" name="servico_id" value="{{ servico.id }}">
+{% endif %}
+
+<!-- CAMPOS BÁSICOS -->
+<div class="header-info">
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+        <div>
+            <label for="descricao_resumida">Descrição Resumida</label>
+            <input type="text" id="descricao_resumida" name="descricao_resumida" value="{{ servico.descricao_resumida|default_if_none:'' }}" required>
+        </div>
+        <div>
+            <label for="codigo_servico">Código do Serviço</label>
+            <input type="text" id="codigo_servico" name="codigo_servico" value="{{ servico.codigo_servico|default_if_none:'' }}">
+        </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:10px; margin-top:10px; position:relative;">
+        <div>
+            <label for="tributacao">Tributação</label>
+            <select id="tributacao" name="tributacao">
+                <option value="">Selecione...</option>
+                <option value="P" {% if servico.tributacao == "P" %}selected{% endif %}>Exportação de Serviços (P)</option>
+                <option value="T" {% if servico.tributacao == "T" %}selected{% endif %}>Operação tributável / Tributado no município (T)</option>
+                <option value="F" {% if servico.tributacao == "F" %}selected{% endif %}>Tributado fora do município (F)</option>
+                <option value="V" {% if servico.tributacao == "V" %}selected{% endif %}>Tributado fora do município, Exigibilidade Suspensa (V)</option>
+                <option value="N" {% if servico.tributacao == "N" %}selected{% endif %}>Tributado fora do município, Imune (N)</option>
+                <option value="B" {% if servico.tributacao == "B" %}selected{% endif %}>Tributado fora do município, Isento (B)</option>
+                <option value="X" {% if servico.tributacao == "X" %}selected{% endif %}>Tributado no município, Exigibilidade Suspensa (X)</option>
+                <option value="M" {% if servico.tributacao == "M" %}selected{% endif %}>Tributado no município, Imune (M)</option>
+                <option value="A" {% if servico.tributacao == "A" %}selected{% endif %}>Tributado no município, Isento (A)</option>
+            </select>
+        </div>
+        <div style="position:relative;">
+            <label for="codigo_nbs">Código NBS / CNAE</label>
+            <input type="text" id="codigo_nbs" name="codigo_nbs" autocomplete="off" value="{{ servico.codigo_nbs|default_if_none:'' }}">
+            <div id="cnae-suggestions" class="autocomplete-suggestions"></div>
+        </div>
+        <div>
+            <label for="categoria">Categoria</label>
+            <input type="text" id="categoria" name="categoria" value="{{ servico.categoria|default_if_none:'' }}">
+        </div>
+        <div>
+            <label for="preco_unitario">Preço Unitário</label>
+            <input type="text" id="preco_unitario" name="preco_unitario" value="{{ servico.preco_unitario|default_if_none:'' }}">
+        </div>
+        <div>
+            <label for="desconto">% Desconto</label>
+            <input type="text" id="desconto" name="desconto" value="{{ servico.desconto|default_if_none:'' }}">
+        </div>
+    </div>
+</div>
+
+<!-- TABS DETALHES -->
+<div class="tabs">
+    <div class="tab active" data-section="descricao_tab">Descrição do Serviço</div>
+    <div class="tab" data-section="impostos_tab">Impostos e Retenções</div>
+    <div class="tab" data-section="produtos_tab">Produtos Utilizados</div>
+</div>
+
+<div class="section active" id="descricao_tab">
+    <textarea name="descricao_servico" style="width:100%; min-height:150px;">{{ servico.descricao_servico|default_if_none:'' }}</textarea>
+</div>
+
+<div class="section" id="impostos_tab">
+    <textarea name="impostos_retencoes" style="width:100%; min-height:150px;">{{ servico.impostos_retencoes|default_if_none:'' }}</textarea>
+</div>
+
+<div class="section" id="produtos_tab">
+    <textarea name="produtos_utilizados" style="width:100%; min-height:150px;">{{ servico.produtos_utilizados|default_if_none:'' }}</textarea>
+</div>
+
+<button type="submit">{% if servico %}Salvar Alterações{% else %}Adicionar Serviço{% endif %}</button>
+<a href="{% url 'cadastrar_servicos' %}">← Voltar para Lista de Serviços</a>
+</form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+
+    // Tabs
+    const tabs = document.querySelectorAll('.tabs .tab');
+    const sections = document.querySelectorAll('.section');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function(){
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            const sectionId = tab.getAttribute('data-section');
+            sections.forEach(s => s.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+        });
+    });
+
+
+    // CNAE autocomplete
+    const cnaeInput = document.getElementById('codigo_nbs');
+    const suggestionBox = document.getElementById('cnae-suggestions');
+
+    const cnaes = [
+        "0111-3/01 - Cultivo de arroz",
+        "0111-3/02 - Cultivo de trigo",
+        "0111-3/03 - Cultivo de milho",
+        "0112-1/01 - Cultivo de feijão",
+        "0112-1/02 - Cultivo de soja",
+        "0210-1/01 - Criação de bovinos para corte",
+        "0210-1/02 - Criação de suínos",
+        "1011-2/01 - Fabricação de produtos de panificação",
+        "1011-2/02 - Fabricação de biscoitos"
+    ];
+
+    cnaeInput.addEventListener('input', function() {
+        const query = this.value.toLowerCase();
+        suggestionBox.innerHTML = '';
+        if (!query) return;
+
+        const filtered = cnaes.filter(c => c.toLowerCase().includes(query));
+
+        filtered.forEach(c => {
+
+            const div = document.createElement('div');
+            div.classList.add('autocomplete-suggestion');
+            div.textContent = c;
+
+            div.addEventListener('click', function() {
+
+                cnaeInput.value = c.split(' - ')[0];
+                suggestionBox.innerHTML = '';
+
+            });
+
+            suggestionBox.appendChild(div);
+
+        });
+    });
+
+
+
+    // =============================
+    // CORREÇÃO DECIMAL (VÍRGULA → PONTO)
+    // =============================
+
+    const precoInput = document.getElementById('preco_unitario');
+    const descontoInput = document.getElementById('desconto');
+
+    function corrigirDecimal(input){
+
+        if(!input) return;
+
+        input.addEventListener('input', function(){
+
+            if(this.value.includes(',')){
+
+                this.value = this.value.replace(',', '.');
+
+            }
+
+        });
+
+    }
+
+    corrigirDecimal(precoInput);
+    corrigirDecimal(descontoInput);
+
+
+
+});
+</script>
+
+</body>
+</html>

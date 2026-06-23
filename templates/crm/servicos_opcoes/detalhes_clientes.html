@@ -1,0 +1,238 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% if empresa %}Editar Conta{% else %}Adicionar Conta{% endif %}</title>
+<link rel="icon" href="{% static 'img/grs-logo.png' %}" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Inter', sans-serif; height:100vh; background: linear-gradient(135deg, #0d0d0d, #1c1c2e); display:flex; justify-content:center; align-items:center; overflow:hidden; }
+.container { background: #fff; border-radius: 16px; padding: 20px 40px; width: 100%; max-width: 1300px; height: 90vh; overflow-y: auto; box-shadow: 0 0 0 4px #1c1c1c; padding-bottom: 200px; }
+h1 { font-size:28px; font-weight:600; margin-bottom:25px; color:#000; }
+.header-info { display:grid; gap:10px; margin-bottom:25px; }
+.header-info label { font-weight:600; margin-bottom:5px; color:#000; display:block; }
+.header-info input, select, textarea { padding:8px 10px; border-radius:10px; border:1px solid #ccc; background:#fff; color:#000; font-size:0.95rem; width:100%; box-shadow: inset 0 0 5px rgba(0,0,0,0.1); transition:all 0.3s; }
+.header-info input:focus, select:focus, textarea:focus { border:1px solid #000; outline:none; }
+.tag-select { background:#2a2a2a; color:#fff; padding:10px; border-radius:10px; border:none; width:260px; font-size:14px; }
+.selected-tags { margin-top:15px; display:flex; flex-wrap:wrap; gap:10px; }
+.tag-chip { padding:6px 12px; border-radius:20px; font-size:14px; font-weight:600; display:flex; align-items:center; gap:8px; color:#111; }
+.tag-chip span { cursor:pointer; font-weight:bold; color:#111; }
+.tabs { display: flex; gap: 10px; flex-wrap: nowrap; overflow-x: auto; white-space: nowrap; padding-bottom: 10px; }
+.tab { padding: 10px 16px; border-radius: 10px; font-weight: 600; cursor: pointer; background: #2a2a2a; transition: all 0.3s; color: #fff; flex-shrink: 0; font-size: 13px; }
+.tab.active { background:#444; color:#fff; }
+.section { display:none; margin-bottom:20px; max-height:50vh; overflow-y:auto; }
+.section.active { display:block; }
+button { width:100%; padding:14px; background:linear-gradient(135deg,#363636,#202020); color:#ffffff; border:none; border-radius:10px; font-size:16px; cursor:pointer; font-weight:600; box-shadow:0 5px 15px rgba(0,0,0,0.3); }
+a { color:#000000; text-decoration:none; display:block; margin-top:15px; }
+.form-bottom { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 1300px; background:#00000000; padding: 22px; border-radius:16px; box-shadow:0 5px 15px rgba(255, 255, 255, 0); z-index:1000; }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    const tabs = document.querySelectorAll('.tab');
+    const sections = document.querySelectorAll('.section');
+    tabs.forEach(tab=>{
+        tab.addEventListener('click',()=>{
+            tabs.forEach(t=>t.classList.remove('active'));
+            tab.classList.add('active');
+            const sectionId = tab.getAttribute('data-section');
+            sections.forEach(s=>s.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+        });
+    });
+
+    // TAGS
+    const tagSelect = document.getElementById("tagSelect");
+    const selectedTags = document.getElementById("selectedTags");
+    let hiddenInput = document.createElement("input");
+    hiddenInput.type = "hidden";
+    hiddenInput.name = "tags_selecionadas";
+    hiddenInput.value = "{{ empresa.tags_selecionadas|default:'' }}";
+    document.querySelector("form").appendChild(hiddenInput);
+    let tagsAtuais = hiddenInput.value ? hiddenInput.value.split(",") : [];
+
+    function atualizarInput() {
+        hiddenInput.value = tagsAtuais.join(",");
+    }
+
+    // renderiza chips existentes
+    tagsAtuais.forEach(tag=>{
+        const chip = document.createElement("div");
+        chip.className = "tag-chip";
+        chip.innerHTML = `${tag} <span data-tag="${tag}">×</span>`;
+        selectedTags.appendChild(chip);
+        chip.querySelector("span").addEventListener("click", function(){
+            const t = this.dataset.tag;
+            tagsAtuais = tagsAtuais.filter(x=>x!==t);
+            atualizarInput();
+            chip.remove();
+        });
+    });
+
+    tagSelect.addEventListener("change", function () {
+        const value = this.value;
+        if (!value || tagsAtuais.includes(value)) return;
+        const color = this.options[this.selectedIndex].dataset.color;
+        tagsAtuais.push(value);
+        atualizarInput();
+        const chip = document.createElement("div");
+        chip.className = "tag-chip";
+        chip.style.background=color;
+        chip.innerHTML = `${value} <span data-tag="${value}">×</span>`;
+        selectedTags.appendChild(chip);
+        chip.querySelector("span").addEventListener("click", function () {
+            const tag = this.dataset.tag;
+            tagsAtuais = tagsAtuais.filter(t => t !== tag);
+            atualizarInput();
+            chip.remove();
+        });
+        this.value="";
+    });
+});
+</script>
+</head>
+
+<body>
+<div class="container">
+<h1>{% if empresa %}Editar Conta{% else %}Adicionar Conta{% endif %}</h1>
+
+<form method="post" enctype="multipart/form-data">
+{% csrf_token %}
+
+<div class="header-info">
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+        <div>
+            <label for="razao_social">Razão Social / Nome Completo</label>
+            <input type="text" id="razao_social" name="razao_social" value="{{ empresa.razao_social|default_if_none:'' }}" required>
+        </div>
+        <div>
+            <label for="cnpj_cpf">CNPJ / CPF</label>
+            <input type="text" id="cnpj_cpf" name="cnpj_cpf" value="{{ empresa.cnpj_cpf|default_if_none:'' }}">
+        </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns: 1fr 100px 1fr 1fr; gap:10px;">
+        <div>
+            <label for="nome_fantasia">Nome Fantasia / Nome Abreviado</label>
+            <input type="text" id="nome_fantasia" name="nome_fantasia" value="{{ empresa.nome_fantasia|default_if_none:'' }}">
+        </div>
+        <div>
+            <label for="ddd">DDD</label>
+            <input type="text" id="ddd" name="ddd" value="{{ empresa.ddd|default_if_none:'' }}">
+        </div>
+        <div>
+            <label for="telefone">Telefone</label>
+            <input type="text" id="telefone" name="telefone" value="{{ empresa.telefone|default_if_none:'' }}">
+        </div>
+        <div>
+            <label for="nome_contato">Nome do Contato</label>
+            <input type="text" id="nome_contato" name="nome_contato" value="{{ empresa.nome_contato|default_if_none:'' }}">
+        </div>
+    </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+    <div class="tab active" data-section="credito">Consulta de Crédito / SEFAZ</div>
+    <div class="tab" data-section="endereco">Endereço</div>
+    <div class="tab" data-section="telefones">Telefones e E-mail</div>
+    <div class="tab" data-section="bancarios">Dados Bancários</div>
+    <div class="tab" data-section="inscricoes">Inscrições, CNAE e Outros</div>
+    <div class="tab" data-section="integracao">Integração Automática</div>
+    <div class="tab" data-section="faturamento">Faturamento e Crédito</div>
+</div>
+
+<!-- SECTIONS -->
+<div class="section active" id="credito">
+    <label for="consulta_credito">Consulta de Crédito</label>
+    <textarea id="consulta_credito" name="consulta_credito">{{ empresa.consulta_credito|default_if_none:'' }}</textarea>
+</div>
+
+<div class="section" id="endereco">
+    <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px;">
+        <div>
+            <label for="endereco_input">Endereço</label>
+            <input type="text" id="endereco_input" name="endereco" value="{{ empresa.endereco|default_if_none:'' }}">
+        </div>
+        <div>
+            <label for="cep">CEP</label>
+            <input type="text" id="cep" name="cep" value="{{ empresa.cep|default_if_none:'' }}">
+        </div>
+        <div>
+            <label for="bairro">Bairro</label>
+            <input type="text" id="bairro" name="bairro" value="{{ empresa.bairro|default_if_none:'' }}">
+        </div>
+        <div>
+            <label for="cidade">Cidade</label>
+            <input type="text" id="cidade" name="cidade" value="{{ empresa.cidade|default_if_none:'' }}">
+        </div>
+        <div>
+            <label for="estado">Estado</label>
+            <input type="text" id="estado" name="estado" value="{{ empresa.estado|default_if_none:'' }}">
+        </div>
+        <div>
+            <label for="pais">País</label>
+            <input type="text" id="pais" name="pais" value="{{ empresa.pais|default_if_none:'' }}">
+        </div>
+        <div>
+            <label for="complemento">Complemento</label>
+            <input type="text" id="complemento" name="complemento" value="{{ empresa.complemento|default_if_none:'' }}">
+        </div>
+    </div>
+</div>
+
+<div class="section" id="telefones">
+    <label for="telefones_email">Telefones e E-mail</label>
+    <textarea id="telefones_email" name="telefones_email">{{ empresa.telefones_email|default_if_none:'' }}</textarea>
+</div>
+
+<div class="section" id="bancarios">
+    <label for="dados_bancarios">Dados Bancários</label>
+    <textarea id="dados_bancarios" name="dados_bancarios">{{ empresa.dados_bancarios|default_if_none:'' }}</textarea>
+</div>
+
+<div class="section" id="inscricoes">
+    <label for="inscricoes_cnae">Inscrições, CNAE e Outros</label>
+    <textarea id="inscricoes_cnae" name="inscricoes_cnae">{{ empresa.inscricoes_cnae|default_if_none:'' }}</textarea>
+</div>
+
+<div class="section" id="integracao">
+    <label for="integracao">Integração Automática</label>
+    <textarea id="integracao" name="integracao">{{ empresa.integracao|default_if_none:'' }}</textarea>
+</div>
+
+<div class="section" id="faturamento">
+    <label for="faturamento_credito">Faturamento e Crédito</label>
+    <textarea id="faturamento_credito" name="faturamento_credito">{{ empresa.faturamento_credito|default_if_none:'' }}</textarea>
+</div>
+
+<!-- RODAPÉ FIXO COM BOTÃO -->
+<div class="form-bottom">
+    <label style="color:#000000; font-weight:600;">Adicionar Tag</label>
+    <select id="tagSelect" class="tag-select">
+        <option value="">Selecionar...</option>
+        <option value="Cliente" data-color="#00ff88">Cliente</option>
+        <option value="Fornecedor" data-color="#ff4d4d">Fornecedor</option>
+        <option value="Funcionário" data-color="#4da6ff">Funcionário</option>
+        <option value="Transportadora" data-color="#ffd84d">Transportadora</option>
+        <option value="Cartório" data-color="#cccccc">Cartório</option>
+        <option value="Consulta de Restrição" data-color="#cccccc">Consulta de Restrição</option>
+        <option value="Contador" data-color="#cccccc">Contador</option>
+        <option value="Empréstimos" data-color="#cccccc">Empréstimos</option>
+        <option value="Menor Aprendiz" data-color="#cccccc">Menor Aprendiz</option>
+        <option value="PSA" data-color="#cccccc">Prestador de Serviços Autônomo</option>
+    </select>
+    <div id="selectedTags" class="selected-tags"></div>
+
+    <button type="submit">{% if empresa %}Salvar Alterações{% else %}Adicionar Conta{% endif %}</button>
+    <a href="{% url 'escolha:clientes' %}">← Voltar para Contas</a>
+</div>
+
+</form>
+</div>
+</body>
+</html>

@@ -1,0 +1,292 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baixa Financeira</title>
+<link rel="icon" href="{% static 'img/grs-logo.png' %}" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<style>
+/* Reset e Base */
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+  font-family:'Inter',sans-serif;
+  min-height:100vh;
+  background:linear-gradient(135deg,#0d0d0d,#1c1c2e);
+  display:flex; justify-content:center; padding-top:20px;
+}
+
+.container{
+  background:#fff; border-radius:16px; padding:20px 40px; width:100%;
+  max-width:1450px; height:95vh; display:flex; flex-direction:row; gap: 20px; box-shadow:0 0 0 4px #1c1c1c;
+}
+
+.form-content-area { flex: 1; display: flex; flex-direction: column; height: 100%; overflow-y: auto; }
+
+/* Estilo da Tabela */
+.table-container { margin-top: 20px; border: 1px solid #eee; border-radius: 12px; overflow: hidden; flex: 1; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid #eee; color: #666; position: sticky; top: 0; }
+td { padding: 12px; border-bottom: 1px solid #eee; vertical-align: middle; }
+tr.selected { background-color: #e6f6f4 !important; }
+tr:hover { background-color: #f1f8f7; cursor: pointer; }
+
+.badge { padding: 4px 8px; border-radius: 6px; font-weight: 600; font-size: 11px; text-transform: uppercase; }
+.badge-pagar { background: #fff3e0; color: #ef6c00; }
+.badge-receber { background: #e3f2fd; color: #1565c0; }
+
+.sidebar { width: 180px; border-left: 1px solid #eee; padding-left: 15px; display: flex; flex-direction: column; gap: 10px; }
+.btn-side {
+  background: none; border: none; color: #333; text-align: left; font-weight: 600;
+  font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 10px; transition: 0.2s;
+}
+.btn-side:hover { background: #f5f5f5; border-radius: 8px; }
+
+/* Filtros e Barra de Período */
+.filter-bar { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr 0.5fr; gap: 10px; margin-bottom: 20px; align-items: end; }
+.filter-group { display: flex; flex-direction: column; gap: 5px; }
+.filter-group label { font-size: 11px; font-weight: 600; color: #666; }
+input, select { padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 13px; width: 100%; }
+
+.btn-batch {
+    background: #1c1c1c; color: #fff; border: none; padding: 10px; border-radius: 8px; 
+    font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.3s;
+}
+.btn-batch:hover { background: #00a18e; }
+
+h1 { font-size: 24px; margin-bottom: 5px; color: #1a1a1a; }
+p.subtitle { color: #666; font-size: 14px; margin-bottom: 20px; }
+
+.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 100; }
+.modal { background: #fff; padding: 25px; border-radius: 16px; width: 500px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+</style>
+</head>
+
+<body>
+<div class="container">
+
+  <div class="form-content-area">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h1><i class="fas fa-check-circle" style="color: #00a18e;"></i> Baixa Financeira</h1>
+            <p class="subtitle">Filtre por período para baixar múltiplos títulos de uma vez.</p>
+        </div>
+        <div class="status-summary" style="display: flex; gap: 20px;">
+            <div style="text-align: right;"><small>Total Selecionado</small><br><strong id="totalSelecionado" style="color: #00a18e;">R$ 0,00</strong></div>
+        </div>
+    </div>
+
+    <div class="filter-bar">
+        <div class="filter-group">
+            <label>Pesquisar</label>
+            <input type="text" placeholder="Cliente ou Doc..." id="searchBox">
+        </div>
+        <div class="filter-group">
+            <label>Início</label>
+            <input type="date" id="dataInicio">
+        </div>
+        <div class="filter-group">
+            <label>Fim</label>
+            <input type="date" id="dataFim">
+        </div>
+        <div class="filter-group">
+            <label>Tipo</label>
+            <select>
+                <option>Todos</option>
+                <option>Contas a Pagar</option>
+                <option>Contas a Receber</option>
+            </select>
+        </div>
+        <button class="btn-batch" onclick="selecionarPorPeriodo()" title="Selecionar tudo no período">
+            <i class="fas fa-tasks"></i> Marcar
+        </button>
+    </div>
+
+    <div class="table-container">
+        <table id="tabelaBaixa">
+            <thead>
+                <tr>
+                    <th style="width: 40px;"><input type="checkbox" id="checkAll" onclick="toggleAll(this)"></th>
+                    <th>Tipo</th>
+                    <th>Vencimento</th>
+                    <th>Cliente/Fornecedor</th>
+                    <th>Documento</th>
+                    <th>Valor</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr data-valor="1250.00" data-data="2026-01-05">
+                    <td><input type="checkbox" class="row-check" onclick="atualizarSoma()"></td>
+                    <td><span class="badge badge-receber">Receber</span></td>
+                    <td>05/01/2026</td>
+                    <td><strong>João Silva</strong></td>
+                    <td>NF-2540</td>
+                    <td>R$ 1.250,00</td>
+                    <td><button onclick="abrirModalIndividual(this)" style="border:none; background:none; color:#00a18e;"><i class="fas fa-arrow-down"></i></button></td>
+                </tr>
+                <tr data-valor="450.00" data-data="2026-01-07">
+                    <td><input type="checkbox" class="row-check" onclick="atualizarSoma()"></td>
+                    <td><span class="badge badge-pagar">Pagar</span></td>
+                    <td>07/01/2026</td>
+                    <td><strong>Posto Ipiranga</strong></td>
+                    <td>BOL-8874</td>
+                    <td>R$ 450,00</td>
+                    <td><button onclick="abrirModalIndividual(this)" style="border:none; background:none; color:#d93025;"><i class="fas fa-arrow-up"></i></button></td>
+                </tr>
+                <tr data-valor="2100.00" data-data="2026-01-09">
+                    <td><input type="checkbox" class="row-check" onclick="atualizarSoma()"></td>
+                    <td><span class="badge badge-receber">Receber</span></td>
+                    <td>09/01/2026</td>
+                    <td><strong>Oficina do Grau</strong></td>
+                    <td>NF-2541</td>
+                    <td>R$ 2.100,00</td>
+                    <td><button onclick="abrirModalIndividual(this)" style="border:none; background:none; color:#00a18e;"><i class="fas fa-arrow-down"></i></button></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+  </div>
+
+  <div class="sidebar">
+    <button class="btn-side" style="color: #00a18e; font-size: 15px;" onclick="abrirModalLote()">
+        <i class="fas fa-check-double"></i> <strong>Baixar Selecionados</strong>
+    </button>
+    <hr style="opacity: 0.1;">
+    <button class="btn-side"><i class="fas fa-file-export"></i> Exportar</button>
+    <button class="btn-side" style="margin-top: auto; color: #666;" onclick="history.back()"><i class="fas fa-arrow-left"></i> Voltar</button>
+  </div>
+
+</div>
+
+<div class="modal-bg" id="modalBaixa">
+    <div class="modal">
+        <h2 id="modalTitle">Confirmar Baixa</h2>
+        <div id="alertaLote" style="display:none; background: #fff3e0; padding: 10px; border-radius: 8px; margin: 15px 0; color: #e65100; font-size: 12px;">
+            <i class="fas fa-exclamation-triangle"></i> Atenção: Você está baixando <strong id="qtdItens">0</strong> itens simultaneamente.
+        </div>
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+            <p id="modalInfo" style="font-size: 14px;"></p>
+        </div>
+        
+        <form id="formBaixa">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                <div>
+                    <label style="display:block; font-size:11px; font-weight:600;">Data da Baixa</label>
+                    <input type="date" value="2026-01-13">
+                </div>
+                <div>
+                    <label style="display:block; font-size:11px; font-weight:600;">Valor Total</label>
+                    <input type="text" id="valorFinal" readonly style="background:#eee">
+                </div>
+            </div>
+            
+            <label style="display:block; font-size:11px; font-weight:600;">Conta Bancária</label>
+            <select style="margin-bottom: 20px;">
+                <option>Itaú Principal</option>
+                <option>Caixa Econômica</option>
+            </select>
+
+            <div style="display: flex; gap: 10px;">
+                <button type="button" class="btn-side" style="flex:1; justify-content:center; background:#eee;" onclick="fecharModal()">Cancelar</button>
+                <button type="submit" class="btn-side" style="flex:1; justify-content:center; background:#00a18e; color:#fff;">Confirmar Baixa</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// 1. Selecionar por Período (A lógica que você pediu)
+function selecionarPorPeriodo() {
+    const inicio = document.getElementById('dataInicio').value;
+    const fim = document.getElementById('dataFim').value;
+
+    if (!inicio || !fim) {
+        alert("Selecione as datas de início e fim primeiro!");
+        return;
+    }
+
+    const rows = document.querySelectorAll('#tabelaBaixa tbody tr');
+    rows.forEach(row => {
+        const dataRow = row.getAttribute('data-data');
+        const checkbox = row.querySelector('.row-check');
+        
+        if (dataRow >= inicio && dataRow <= fim) {
+            checkbox.checked = true;
+            row.classList.add('selected');
+        } else {
+            checkbox.checked = false;
+            row.classList.remove('selected');
+        }
+    });
+    atualizarSoma();
+}
+
+// 2. Atualizar soma dos selecionados
+function atualizarSoma() {
+    const checks = document.querySelectorAll('.row-check:checked');
+    let total = 0;
+    checks.forEach(check => {
+        const valor = parseFloat(check.closest('tr').getAttribute('data-valor'));
+        total += valor;
+        check.closest('tr').classList.add('selected');
+    });
+    
+    // Remove classe 'selected' de quem não está marcado
+    document.querySelectorAll('.row-check:not(:checked)').forEach(check => {
+        check.closest('tr').classList.remove('selected');
+    });
+
+    document.getElementById('totalSelecionado').innerText = total.toLocaleString('pt-br',{style: 'currency', currency: 'BRL'});
+}
+
+// 3. Marcar/Desmarcar todos
+function toggleAll(master) {
+    document.querySelectorAll('.row-check').forEach(check => {
+        check.checked = master.checked;
+    });
+    atualizarSoma();
+}
+
+// 4. Modal para Lote
+function abrirModalLote() {
+    const checks = document.querySelectorAll('.row-check:checked');
+    if (checks.length === 0) {
+        alert("Selecione ao menos um título!");
+        return;
+    }
+
+    document.getElementById('modalTitle').innerText = "Baixa em Lote";
+    document.getElementById('alertaLote').style.display = "block";
+    document.getElementById('qtdItens').innerText = checks.length;
+    document.getElementById('modalInfo').innerText = "Você está confirmando o pagamento/recebimento de todos os títulos selecionados no período.";
+    document.getElementById('valorFinal').value = document.getElementById('totalSelecionado').innerText;
+    
+    document.getElementById('modalBaixa').style.display = 'flex';
+}
+
+// 5. Modal Individual
+function abrirModalIndividual(btn) {
+    const row = btn.closest('tr');
+    const nome = row.cells[3].innerText;
+    const valor = row.cells[5].innerText;
+
+    document.getElementById('modalTitle').innerText = "Baixa Individual";
+    document.getElementById('alertaLote').style.display = "none";
+    document.getElementById('modalInfo').innerHTML = `<strong>Favorecido:</strong> ${nome}<br><strong>Valor:</strong> ${valor}`;
+    document.getElementById('valorFinal').value = valor;
+    
+    document.getElementById('modalBaixa').style.display = 'flex';
+}
+
+function fecharModal() {
+    document.getElementById('modalBaixa').style.display = 'none';
+}
+</script>
+
+</body>
+</html>

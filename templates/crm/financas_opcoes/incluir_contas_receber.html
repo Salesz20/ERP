@@ -1,0 +1,218 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contas a receber</title>
+<link rel="icon" href="{% static 'img/grs-logo.png' %}" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+/* Reset e Base - Estilo solicitado */
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+  font-family:'Inter',sans-serif;
+  min-height:100vh;
+  background:linear-gradient(135deg,#0d0d0d,#1c1c2e);
+  display:flex;
+  justify-content:center;
+  padding-top:20px;
+}
+
+/* Container principal */
+.container{
+  background:#fff;
+  border-radius:16px;
+  padding:20px 40px;
+  width:100%;
+  max-width:1450px;
+  height:95vh;
+  display:flex;
+  flex-direction:row;
+  gap: 20px;
+  box-shadow:0 0 0 4px #1c1c1c;
+}
+
+.form-content-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+  padding-right: 15px;
+}
+
+.sidebar {
+  width: 170px;
+  border-left: 1px solid #eee;
+  padding-left: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+h1{font-size:24px;font-weight:600;margin-bottom:20px; color: #2c3e50;}
+label{font-weight:600;font-size:12px;margin-bottom:5px;display:block; color: #555;}
+
+input,select,textarea{
+  padding:8px 10px;
+  border-radius:8px;
+  border:1px solid #ccc;
+  width:100%;
+  font-size:.9rem;
+  background-color: #fdfdfd;
+}
+
+/* Tabs baseadas no seu código Omie */
+.tabs{ display:flex; gap:10px; margin:20px 0; border-bottom: 1px solid #eee; }
+.tab{
+  padding:10px 16px;
+  border-radius:8px 8px 0 0;
+  background:#f8f9fa;
+  color:#666;
+  font-weight:600;
+  font-size:12px;
+  cursor:pointer;
+  border: 1px solid transparent;
+}
+.tab.active{
+    background:#fff;
+    color:#00a18e;
+    border: 1px solid #eee;
+    border-bottom: 2px solid #00a18e;
+}
+
+.content{flex:1}
+.section{display:none}
+.section.active{display:block}
+
+.btn-side {
+  background: none; border: none; color: #333; text-align: left; font-weight: 600;
+  font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 8px; transition: 0.2s;
+}
+.btn-side:hover { background: #f5f5f5; border-radius: 8px; }
+
+/* Status e Resumo */
+.footer-summary{ border-top:1px solid #ddd; padding-top:15px; margin-top: 20px; }
+.status-tag{ padding:10px; background:#e8f5e9; color: #2e7d32; border-radius:8px; font-weight:600; margin-bottom:10px; font-size: 12px; }
+.summary-box{ padding:15px; border-radius:12px; background:#f9f9f9; }
+.summary-box p{ display:flex; justify-content:space-between; font-size:14px; margin-bottom:6px }
+
+</style>
+</head>
+
+<body>
+<div class="container">
+
+  <div class="form-content-area">
+    <h1>Contas a receber</h1>
+
+    <form method="post" id="formContas">
+      {% csrf_token %}
+
+      <div style="display:grid;grid-template-columns:3fr 1fr 1fr;gap:15px">
+        <div>
+            <label>Favorecido / Fornecedor</label>
+            <input type="text" id="favorecido" placeholder="Pesquisar fornecedor...">
+        </div>
+        <div>
+            <label>Vencimento</label>
+            <input type="date" id="vencimento">
+        </div>
+        <div>
+            <label>Valor da Conta</label>
+            <input type="number" step="0.01" value="0.00" style="text-align: right;">
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:3fr 1fr 1fr;gap:15px; margin-top:15px;">
+        <div>
+            <label>Categoria</label>
+            <select id="categoria">
+                <option value="">Selecione...</option>
+                </select>
+        </div>
+        <div>
+            <label>Previsão de Pagamento</label>
+            <input type="date">
+        </div>
+        <div>
+            <label>Conta Corrente</label>
+            <select>
+                <option value="">Selecione...</option>
+            </select>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <div class="tab" data-section="detalhes">Detalhes</div>
+        <div class="tab" data-section="impostos">Impostos Retidos</div>
+        <div class="tab" data-section="departamentos">Departamentos</div>
+        <div class="tab" data-section="repeticao">Repetição</div>
+        <div class="tab active" data-section="diversos">Diversos</div>
+        <div class="tab" data-section="obs">Observações</div>
+      </div>
+
+      <div class="content">
+        <div class="section active" id="diversos">
+          <div style="display:grid;grid-template-columns:repeat(4, 1fr); gap:10px">
+            <div><label>Número do Pedido</label><input type="text"></div>
+            <div>
+                <label>Tipo de Documento</label>
+                <select><option>Outros</option></select>
+            </div>
+            <div><label>Número do Documento</label><input type="text"></div>
+            <div><label>Número da Parcela</label><input type="text" value="001/001"></div>
+          </div>
+          
+          <div style="display:grid;grid-template-columns:1fr 1fr; gap:10px; margin-top:15px;">
+            <div><label>Chave da NF-e</label><input type="text" placeholder="Chave de acesso"></div>
+            <div><label>Código de Barras</label><input type="text"></div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr; gap:10px; margin-top:15px;">
+            <div><label>Vendedor</label><input type="text" placeholder="Pesquisar vendedor..."></div>
+            <div><label>Origem</label><input type="text" value="Conta a Pagar" readonly style="background:#eee"></div>
+          </div>
+        </div>
+
+        <div class="section" id="detalhes"><label>Detalhes do Documento</label><textarea rows="6"></textarea></div>
+        <div class="section" id="impostos"><label>Configurações de Impostos Retidos</label><div style="height:100px; border:1px dashed #ccc; border-radius:8px;"></div></div>
+        <div class="section" id="obs"><label>Observações Internas</label><textarea rows="6"></textarea></div>
+      </div>
+
+    </form>
+  </div>
+
+  <div class="sidebar">
+    <button type="submit" form="formContas" class="btn-side" style="color: #00a18e; font-size: 15px;">💾 <strong>Salvar</strong></button>
+    <button type="button" class="btn-side">➕ Incluir Novo</button>
+    <button type="button" class="btn-side">📄 Imprimir</button>
+    <button type="button" class="btn-side">📋 Duplicar</button>
+    <hr style="opacity: 0.1; margin: 5px 0;">
+    <button type="button" class="btn-side">📎 Anexos (0)</button>
+    <button type="button" class="btn-side" style="color: #d93025; margin-top: auto;">🗑️ Excluir</button>
+  </div>
+
+  <a href="{% url 'financas:contas_receber' %}"> Voltar </a>
+</div>
+
+<script>
+// Lógica de Troca de Abas
+const tabs = document.querySelectorAll('.tab')
+const sections = document.querySelectorAll('.section')
+
+tabs.forEach(t=>{
+  t.onclick=()=>{
+    tabs.forEach(x=>x.classList.remove('active'))
+    sections.forEach(x=>x.classList.remove('active'))
+    t.classList.add('active')
+    document.getElementById(t.dataset.section).classList.add('active')
+  }
+})
+</script>
+
+</body>
+</html>

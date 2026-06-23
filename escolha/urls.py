@@ -2,10 +2,18 @@ from django.urls import path
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
+from django.urls import path, include
 
 app_name = 'escolha'
 
 urlpatterns = [
+    path("servicos/", include("servicos.urls")),
+    path("vendas/", include("vendas.urls")),
+    path('compras/', include('compras.urls')),    # COMPRAS
+    path("financas/", include("financas.urls")),
+    path("contador/", include("contador.urls")),
+
+
     # ------------------------------
     # PÁGINAS PRINCIPAIS
     # ------------------------------

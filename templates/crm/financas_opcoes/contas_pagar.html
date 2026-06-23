@@ -1,0 +1,326 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movimentação Financeira - GRS Serviços</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-body: #0d0d0d;
+            --bg-wrapper: #ffffff;
+            --text-main: #111111;
+            --accent: #000000;
+            --border-color: #e5e7eb;
+            --header-bg: #f8f9fa;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            background: var(--bg-body); 
+            color: var(--text-main); 
+            font-family: 'Inter', sans-serif; 
+            padding: 20px;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .wrapper { 
+            background: var(--bg-wrapper); 
+            width: 100%; 
+            max-width: 100%; /* Ocupa a tela toda para dashboards financeiros */
+            height: 90vh; 
+            border-radius: 12px; 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        /* HEADER */
+        .page-header {
+            padding: 20px 30px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .title-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.5px; }
+
+        .top-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        /* PESQUISA */
+        .search-bar {
+            display: flex;
+            background: #f1f1f1;
+            border-radius: 8px;
+            padding: 4px 12px;
+            align-items: center;
+            flex: 1;
+            max-width: 500px;
+        }
+
+        .search-bar i { color: #888; margin-right: 8px; }
+        .search-bar input {
+            background: transparent;
+            border: none;
+            padding: 8px;
+            width: 100%;
+            outline: none;
+            font-size: 14px;
+        }
+
+        /* BOTÕES */
+        .btn {
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+        }
+        .btn-primary { background: var(--accent); color: #fff; }
+        .btn-outline { background: transparent; border: 1px solid var(--border-color); color: #444; }
+
+        /* GRID ESTILO OMIE COM SCROLL */
+        .grid-container {
+            flex: 1;
+            overflow: auto; /* Habilita scroll nos dois sentidos */
+            position: relative;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 12px; /* Fonte levemente menor para caber mais info */
+        }
+
+        thead th {
+            position: sticky;
+            top: 0;
+            background: var(--header-bg);
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #666;
+            border-bottom: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            white-space: nowrap;
+            z-index: 10;
+        }
+
+        /* Linha de Filtros por coluna */
+        .filter-row td {
+            background: #fff;
+            padding: 5px 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .filter-row input {
+            width: 100%;
+            padding: 4px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        tbody td {
+            padding: 10px 15px;
+            border-bottom: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            white-space: nowrap; /* Não quebra linha, força o scroll lateral */
+            color: #333;
+        }
+
+        tbody tr:hover { background: #f4f7ff; }
+
+        /* Estilos de Células Específicas */
+        .col-valor { font-weight: 600; text-align: right; }
+        .col-destaque { font-weight: 600; color: #000; }
+        .col-date { color: #666; font-family: monospace; }
+
+        /* STATUS PILL */
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .status-pill.pago { background: #e6f7ed; color: #1db45a; }
+        .status-pill.aberto { background: #fff4e5; color: #ff9900; }
+        .status-pill.atrasado { background: #fdeaea; color: #df3c3c; }
+        .status-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+        /* FOOTER */
+        .page-footer {
+            padding: 15px 30px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff;
+        }
+
+        /* Scrollbar Personalizado */
+        .grid-container::-webkit-scrollbar { width: 10px; height: 10px; }
+        .grid-container::-webkit-scrollbar-track { background: #f1f1f1; }
+        .grid-container::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <header class="page-header">
+        <div class="title-section">
+            <h1><i class="fa-solid fa-file-invoice-dollar"></i> Contas a Pagar</h1>
+            <div class="top-actions">
+                <a href="{% url 'financas:financas' %}" class="btn btn-outline">
+                    <i class="fa-solid fa-arrow-left"></i> Voltar
+                </a>
+                <a href="{% url 'financas:incluir_contas_pagar' %}" class="btn btn-primary">
+                    <i class="fa-solid fa-plus"></i> Adicionar Conta
+                </a>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 15px;">
+            <div class="search-bar">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Pesquisa rápida em toda a lista...">
+            </div>
+            <button class="btn btn-outline"><i class="fa-solid fa-filter"></i> Filtros Avançados</button>
+            <button class="btn btn-outline"><i class="fa-solid fa-file-export"></i> Exportar Grid</button>
+        </div>
+    </header>
+
+    <div class="grid-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Situação</th>
+                    <th>Número do Documento</th>
+                    <th>Parcela</th>
+                    <th>Nota Fiscal</th>
+                    <th>Vencimento</th>
+                    <th>Fornecedor (Nome Fantasia)</th>
+                    <th>Previsão de Pagamento</th>
+                    <th>Projeto</th>
+                    <th>Último Pagamento</th>
+                    <th>Valor da Conta</th>
+                    <th>Valor Líquido</th>
+                    <th>Impostos Retidos</th>
+                    <th>Desconto</th>
+                    <th>Juros e Multa</th>
+                    <th>Valor Pago</th>
+                    <th>Valor a Pagar</th>
+                    <th>Categoria</th>
+                    <th>Operação</th>
+                    <th>Conta Corrente</th>
+                    <th>Tipo de Documento</th>
+                    <th>Data de Emissão</th>
+                    <th>Inclusão</th>
+                    <th>Incluído por</th>
+                </tr>
+                <tr class="filter-row">
+                    <td><input type="text" placeholder="Filtro..."></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                </tr>
+            </thead>
+            <tbody>
+                {% for conta in contas %}
+                <tr>
+                    <td>
+                        <div class="status-pill aberto"><div class="dot"></div> Aberto</div>
+                    </td>
+                    <td class="col-destaque">{{ conta.numero_documento }}</td>
+                    <td>{{ conta.parcela }}</td>
+                    <td>{{ conta.nota_fiscal }}</td>
+                    <td class="col-date">{{ conta.vencimento|date:"d/m/Y" }}</td>
+                    <td class="col-destaque">{{ conta.fornecedor_nome }}</td>
+                    <td class="col-date">{{ conta.previsao_pagamento|date:"d/m/Y" }}</td>
+                    <td>{{ conta.projeto }}</td>
+                    <td class="col-date">{{ conta.ultimo_pagamento|date:"d/m/Y" }}</td>
+                    <td class="col-valor">R$ {{ conta.valor_conta }}</td>
+                    <td class="col-valor" style="color: #000;">R$ {{ conta.valor_liquido }}</td>
+                    <td class="col-valor" style="color: #df3c3c;">R$ {{ conta.impostos_retidos }}</td>
+                    <td class="col-valor">R$ {{ conta.desconto }}</td>
+                    <td class="col-valor">R$ {{ conta.juros_multa }}</td>
+                    <td class="col-valor" style="color: #1db45a;">R$ {{ conta.valor_pago }}</td>
+                    <td class="col-valor">R$ {{ conta.valor_a_pagar }}</td>
+                    <td>{{ conta.categoria }}</td>
+                    <td>{{ conta.operacao }}</td>
+                    <td>{{ conta.conta_corrente }}</td>
+                    <td>{{ conta.tipo_documento }}</td>
+                    <td class="col-date">{{ conta.data_emissao|date:"d/m/Y" }}</td>
+                    <td class="col-date">{{ conta.data_inclusao|date:"d/m/Y" }}</td>
+                    <td>{{ conta.usuario_inclusao }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="23" style="text-align:center; padding: 50px; color: #999;">
+                        Nenhuma conta registrada para este filtro.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <footer class="page-footer">
+        <div style="font-size: 13px; color: #666;">
+            Exibindo <strong>{{ contas|length }}</strong> registros financeiros
+        </div>
+        <div style="font-size: 13px; font-weight: 600;">
+            Total Bruto: <span style="margin-left: 10px; color: #1db45a;">R$ 0,00</span>
+        </div>
+    </footer>
+</div>
+
+</body>
+</html>

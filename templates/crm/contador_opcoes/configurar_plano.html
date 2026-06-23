@@ -1,0 +1,272 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GRS - Plano de Contas</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #00add8;
+            --bg-body: #f4f7f9;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: var(--bg-body); 
+            padding: 20px; 
+            color: var(--text-dark);
+        }
+
+        .main-wrapper {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            display: flex;
+            min-height: 85vh;
+            overflow: hidden;
+        }
+
+        /* --- Área da Tabela --- */
+        .content-area {
+            flex: 1;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header-top h1 { font-size: 22px; font-weight: 700; color: #0f172a; }
+        
+        .import-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        /* --- Estilo da Tabela de 7 Colunas --- */
+        .table-container {
+            flex: 1;
+            overflow-x: auto;
+        }
+
+        .grs-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .grs-table thead th {
+            background: #f8fafc;
+            color: var(--text-muted);
+            text-align: left;
+            padding: 12px;
+            border-bottom: 2px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            white-space: nowrap;
+        }
+
+        /* Ícone de filtro (funil) igual à imagem */
+        .grs-table thead th i.fa-filter {
+            font-size: 10px;
+            margin-left: 5px;
+            color: #cbd5e1;
+            cursor: pointer;
+        }
+
+        .grs-table tbody td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .grs-table tbody tr:hover {
+            background-color: #f1f9ff;
+        }
+
+        /* Destaque para Contas Sintéticas */
+        .row-sintetica {
+            font-weight: 700;
+            background-color: #fcfcfc;
+        }
+
+        /* Cor de seleção (Igual à imagem enviada) */
+        .row-selected {
+            background-color: #e0f2fe !important;
+        }
+
+        /* --- Barra Lateral de Ações (Design GRS) --- */
+        .sidebar-actions {
+            width: 200px;
+            background: #fafbfc;
+            border-left: 1px solid var(--border-color);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .sidebar-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            text-decoration: none;
+            color: var(--text-dark);
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: #e2e8f0;
+            color: var(--primary);
+        }
+
+        .action-btn i {
+            font-size: 16px;
+            color: var(--primary);
+            width: 20px;
+        }
+
+        /* Paginação inferior */
+        .pagination-footer {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-wrapper">
+    <div class="content-area">
+        <div class="header-top">
+            <div>
+                <h1>Plano de Contas</h1>
+                <p style="font-size: 13px; color: var(--text-muted);">Este é o plano de contas contábil da <strong>GRS Serviços</strong></p>
+            </div>
+            <a href="#" class="import-link">
+                <i class="fas fa-cloud-upload-alt"></i> Importar agora mesmo
+            </a>
+        </div>
+
+        <div class="table-container">
+            <table class="grs-table">
+                <thead>
+                    <tr>
+                        <th style="width: 30px;"><input type="checkbox"></th>
+                        <th>Classificação <i class="fas fa-filter"></i></th>
+                        <th>Cód. Reduzido <i class="fas fa-filter"></i></th>
+                        <th>Descrição <i class="fas fa-filter"></i></th>
+                        <th>Natureza no SPED <i class="fas fa-filter"></i></th>
+                        <th>Natureza da Operação <i class="fas fa-filter"></i></th>
+                        <th>Tipo da Conta <i class="fas fa-filter"></i></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="row-sintetica row-selected">
+                        <td><input type="checkbox" checked></td>
+                        <td>1.0.00.00.00</td>
+                        <td>0</td>
+                        <td>ATIVO</td>
+                        <td>01 - Contas de ativo</td>
+                        <td>Devedora</td>
+                        <td>Totalizadora (Sintética)</td>
+                    </tr>
+                    <tr class="row-sintetica">
+                        <td><input type="checkbox"></td>
+                        <td>1.1.00.00.00</td>
+                        <td>0</td>
+                        <td>ATIVO CIRCULANTE</td>
+                        <td>01 - Contas de ativo</td>
+                        <td>Devedora</td>
+                        <td>Totalizadora (Sintética)</td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td style="padding-left: 30px;">1.1.01.02.01</td>
+                        <td>341</td>
+                        <td>Banco Inter</td>
+                        <td>01 - Contas de ativo</td>
+                        <td>Devedora</td>
+                        <td>Analítica</td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td style="padding-left: 30px;">1.1.01.02.04</td>
+                        <td>410</td>
+                        <td>Banco Nubank</td>
+                        <td>01 - Contas de ativo</td>
+                        <td>Devedora</td>
+                        <td>Analítica</td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td style="padding-left: 30px;">1.1.01.02.06</td>
+                        <td>412</td>
+                        <td>Banco Original</td>
+                        <td>01 - Contas de ativo</td>
+                        <td>Devedora</td>
+                        <td>Analítica</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination-footer">
+            <span>1 - 5 de 558 registros</span>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <i class="fas fa-chevron-left" style="cursor: pointer;"></i>
+                <span style="background: var(--primary); color: #fff; padding: 2px 8px; border-radius: 4px;">1</span>
+                <i class="fas fa-chevron-right" style="cursor: pointer;"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar-actions">
+        <div class="sidebar-title">
+            Ações <span>Fechar <i class="fas fa-times"></i></span>
+        </div>
+        <a href="{% url 'incluir_plano' %}" class="action-btn"><i class="fas fa-plus-circle"></i> Incluir</a>
+        <a href="#" class="action-btn"><i class="fas fa-edit"></i> Alterar</a>
+        <a href="#" class="action-btn"><i class="fas fa-file-import"></i> Importar</a>
+        <a href="#" class="action-btn"><i class="fas fa-print"></i> Imprimir</a>
+        <a href="#" class="action-btn"><i class="fas fa-trash-alt" style="color: #ef4444;"></i> Excluir</a>
+    </div>
+</div>
+    <a href="{% url 'contador' %}" class="voltar">Voltar</a>
+
+</body>
+</html>

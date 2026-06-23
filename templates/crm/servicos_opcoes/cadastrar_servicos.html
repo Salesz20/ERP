@@ -1,0 +1,142 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Serviços - CRM</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #000; color: #000; font-family: 'Inter', sans-serif; padding: 20px; overflow: hidden; }
+.wrapper { background: #fff; width: calc(100% - 60px); height: calc(100vh - 60px); margin: 0 auto; border-radius: 12px; padding: 30px; box-shadow: 0 0 0 3px #fff; display: flex; flex-direction: column; }
+.table-wrapper { flex: 1; overflow-y: auto; padding-right: 8px; }
+h1 { font-size: 24px; font-weight: 600; margin-bottom: 20px; color: #000; text-align: center; }
+.novo { margin-bottom: 15px; }
+.novo a { padding: 8px 16px; background: #111; color: #fff; text-decoration: none; border-radius: 7px; font-weight: 600; font-size: 14px; }
+.novo a:hover { background: #333; }
+.pesquisa { margin-bottom: 18px; }
+.pesquisa form { display: flex; gap: 8px; }
+.pesquisa input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.9rem; }
+.pesquisa button { padding: 10px 16px; border: none; background: #111; color: #fff; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; }
+.pesquisa button:hover { background: #333; }
+table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; white-space: nowrap; font-size: 13px; }
+th { background: #e9e9e9; padding: 8px; font-weight: 600; border-bottom: 1px solid #ccc; }
+td { padding: 8px; border-bottom: 1px solid #eee; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* 1 clique: selecionar */
+tr {
+    transition: 0.2s;
+    cursor: pointer;
+}
+tr.selected {
+    background: #e0e0e0 !important;
+}
+
+/* hover */
+tr:hover {
+    background: #f2f2f2 !important;
+}
+
+.status-badge { display: flex; align-items: center; gap: 5px; }
+.status-badge .dot { width: 12px; height: 12px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 8px; color: #fff; }
+.dot.green { background: #2ecc71; }
+.dot.red { background: #e74c3c; }
+.voltar { display: inline-block; margin-top: 20px; padding: 10px 18px; background: #111; color: #fff; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px; }
+.voltar:hover { background: #333; }
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+
+    <h1>Serviços Cadastrados</h1>
+
+    <div class="novo">
+        <a href="{% url 'escolha:detalhes_servicos' %}">+ Adicionar Serviço</a>
+    </div>
+
+    <div class="pesquisa">
+        <form method="get">
+            <input type="text" name="q" value="{{ query }}" placeholder="Pesquisar serviços...">
+            <button type="submit">Buscar</button>
+        </form>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <tr>
+                <th>Situação</th>
+                <th>Descrição</th>
+                <th>Código</th>
+                <th>Código de Serviço Municipal</th>
+                <th>Preço Unitário</th>
+                <th>Categoria</th>
+                <th>Tributação</th>
+                <th>Descrição Completa</th>
+                <th>Criado por</th>
+                <th>Última Alteração</th>
+                <th>Inclusão</th>
+                <th>Alterado por</th>
+            </tr>
+
+            {% for servico in servicos %}
+            <tr data-link="{% url 'escolha:editar_servico' servico.id %}">
+
+                <td>
+                    <div class="status-badge">
+                        {% if servico.situacao == 'Inativo' %}
+                            <span class="dot red"><i class="fa-solid fa-xmark"></i></span> Inativo
+                        {% else %}
+                            <span class="dot green"><i class="fa-solid fa-check"></i></span> Ativo
+                        {% endif %}
+                    </div>
+                </td>
+
+                <td>{{ servico.descricao_resumida }}</td>
+                <td>{{ servico.codigo_servico }}</td>
+                <td>{{ servico.codigo_nbs }}</td>
+                <td>{{ servico.preco_unitario }}</td>
+                <td>{{ servico.categoria }}</td>
+                <td>{{ servico.tributacao }}</td>
+                <td>{{ servico.descricao_servico }}</td>
+                <td>{{ servico.criado_por }}</td>
+                <td>{{ servico.ultima_alteracao|date:"d/m/Y H:i" }}</td>
+                <td>{{ servico.data_criacao|date:"d/m/Y" }}</td>
+                <td>{{ servico.alterado_por }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="12" style="text-align:center;">Nenhum serviço cadastrado.</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <a href="{% url 'escolha:servicos_opcoes' %}" class="voltar">Voltar ao Painel</a>
+
+</div>
+
+<script>
+document.querySelectorAll("tr[data-link]").forEach(row => {
+    
+    // 1 clique = selecionar
+    row.addEventListener("click", function() {
+        document.querySelectorAll("tr").forEach(r => r.classList.remove("selected"));
+        this.classList.add("selected");
+    });
+
+    // 2 cliques = entrar
+    row.addEventListener("dblclick", function() {
+        const url = this.getAttribute("data-link");
+        window.location = url;
+    });
+
+});
+</script>
+
+</body>
+</html>

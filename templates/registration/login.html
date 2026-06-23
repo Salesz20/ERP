@@ -1,305 +1,374 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - GRS Serviços</title>
-    <link rel="icon" href="{% static 'img/grs-logo.png' %}" type="image/png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GRS Serviços — ERP</title>
 
-    <!-- Fonte -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Ícones Font Awesome OFICIAL -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root{
+    --bg:#0f1115;
+    --card:#151821;
+    --border:rgba(255,255,255,.12);
+    --accent:#3b82f6;
+    --soft:rgba(255,255,255,.7);
+}
 
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;}
 
-        body {
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            background: #000000;
-            display: flex;
-            flex-direction: column;
-        }
+body{
+    background:var(--bg);
+    color:#fff;
+    height:100vh;
+    overflow:hidden;
+}
 
-        /* TOPBAR */
-        .topbar {
-            width: 100%;
-            height: 60px;
-            background: #0c0c0c;
-            border-bottom: 1px solid #1a1a1a;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 25px;
-        }
+/* ===== TOPO (SEM LINHA PRETA) ===== */
+.topbar{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    padding:22px 60px;
+    display:flex;
+    justify-content:flex-end;
+    align-items:center;
+    z-index:20;
+    background:transparent;
+    backdrop-filter:none;
+}
 
-        .topbar-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+.top-actions{
+    display:flex;
+    gap:32px;
+}
 
-        .topbar-left img {
-            width: 32px;
-            height: 32px;
-        }
+.top-actions a{
+    color:#fff;
+    text-decoration:none;
+    font-weight:600;
+    font-size:14px;
+    opacity:.85;
+    cursor:pointer;
+}
 
-        .topbar-left span {
-            color: #fff;
-            font-size: 18px;
-            font-weight: 600;
-        }
+.top-actions a:hover{opacity:1}
 
-        .topbar-right {
-            display: flex;
-            align-items: center;
-            gap: 22px;
-        }
+/* ===== LAYOUT ===== */
+.wrapper{
+    display:flex;
+    height:100vh; /* SEM padding-top */
+}
 
-        .icon-btn {
-            color: #e5e5e5;
-            font-size: 20px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
+/* ===== SLIDE ===== */
+.slide{
+    flex:1.4;
+    position:relative;
+}
 
-        .icon-btn:hover {
-            color: #fff;
-        }
+.slide img{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    opacity:0;
+    transition:1s;
+}
 
-        /* USER BOX */
-        .user-box {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 6px 12px;
-            border: 1px solid #1f1f1f;
-            border-radius: 8px;
-            background: #141414;
-        }
+.slide img.active{opacity:1}
 
-        .user-box i {
-            font-size: 20px;
-            color: #ddd;
-        }
+.overlay{
+    position:absolute;
+    inset:0;
+    background:linear-gradient(
+        to top,
+        rgba(15,17,21,.95),
+        rgba(15,17,21,.35)
+    );
+}
 
-        .user-box span {
-            font-size: 14px;
-            color: #bfbfbf;
-        }
+.slide-text{
+    position:relative;
+    z-index:2;
+    padding:120px 90px;
+    max-width:700px;
+}
 
-        /* MAIN CONTENT */
-        .main {
-            display: flex;
-            flex: 1;
-        }
+.slide-text h1{
+    font-size:54px;
+    font-weight:800;
+}
 
-        /* LEFT SIDE (Slides) */
-        .left-side {
-            flex: 1.2;
-            position: relative;
-            overflow: hidden;
-            padding: 12px; /* ← Moldura interna */
-        }
+.slide-text p{
+    margin-top:18px;
+    font-size:18px;
+    color:var(--soft);
+}
 
-        .slide {
-            position: absolute;
-            top: 12px;
-            left: 12px;
-            right: 12px;
-            bottom: 12px;
-            background-size: cover;
-            background-position: center;
-            opacity: 0;
-            transition: opacity 1s ease;
-            border-radius: 14px; /* opcional */
-        }
+/* ===== LOGIN ===== */
+.login{
+    width:480px;
+    padding:80px 60px;
+    border-left:1px solid var(--border);
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+}
 
-        .slide.active {
-            opacity: 1;
-        }
+.login .logo{
+    text-align:center;
+    margin-bottom:32px;
+}
 
-        .slide-text {
-            position: absolute;
-            left: 40px;
-            bottom: 18%;
-            font-size: 34px;
-            font-weight: 600;
-            color: #fff;
-            max-width: 450px;
-            opacity: 0;
-            transition: opacity 0.8s ease;
-            line-height: 1.2;
-            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
-        }
+.login .logo img{
+    width:120px;
+}
 
-        .slide-text.active {
-            opacity: 1;
-        }
+.login h2{
+    font-size:26px;
+    margin-bottom:8px;
+    text-align:center;
+}
 
-        /* RIGHT SIDE (LOGIN) */
-        .right-side {
-            flex: 1;
-            background: #000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 60px;
-        }
+.login p{
+    font-size:14px;
+    color:#888;
+    margin-bottom:36px;
+    text-align:center;
+}
 
-        .login-box {
-            width: 100%;
-            max-width: 380px;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(8px);
-            padding: 40px;
-            border-radius: 14px;
-        }
+.input{
+    margin-bottom:20px;
+}
 
-        .logo-mini {
-            width: 90px;
-            margin: 0 auto 25px auto;
-            display: block;
-        }
+.input label{
+    font-size:12px;
+    color:#aaa;
+}
 
-        h2 {
-            font-size: 26px;
-            font-weight: 600;
-            color: #fff;
-            margin-bottom: 8px;
-            text-align: center;
-        }
+.input input{
+    width:100%;
+    margin-top:8px;
+    padding:14px;
+    border-radius:10px;
+    background:rgba(255,255,255,.07);
+    border:1px solid var(--border);
+    color:#fff;
+}
 
-        .subtitle {
-            text-align: center;
-            color: #b5b5b5;
-            font-size: 14px;
-            margin-bottom: 25px;
-        }
+.input input:focus{
+    outline:none;
+    border-color:var(--accent);
+}
 
-        input {
-            width: 100%;
-            padding: 14px;
-            background: #131313;
-            border: 1px solid #2a2a2a;
-            border-radius: 10px;
-            font-size: 15px;
-            color: #eee;
-            margin-bottom: 16px;
-        }
+.btn{
+    margin-top:10px;
+    padding:14px;
+    border-radius:10px;
+    border:none;
+    background:#fff;
+    font-weight:700;
+    cursor:pointer;
+}
 
-        button {
-            width: 100%;
-            padding: 15px;
-            border-radius: 10px;
-            border: none;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            background: #fff;
-            color: #000;
-        }
+/* ===== MODAL PLANOS ===== */
+.modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.65);
+    display:none;
+    justify-content:center;
+    align-items:center;
+    z-index:50;
+}
 
-        a {
-            display: block;
-            margin-top: 15px;
-            text-align: center;
-            color: #cfcfcf;
-            text-decoration: none;
-            font-size: 14px;
-        }
-    </style>
+.modal.active{display:flex}
+
+.modal-card{
+    background:var(--card);
+    padding:50px;
+    border-radius:20px;
+    width:900px;
+    max-width:95%;
+}
+
+.modal-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:30px;
+}
+
+.modal-header h3{
+    font-size:28px;
+}
+
+.close{
+    font-size:26px;
+    cursor:pointer;
+    opacity:.7;
+}
+
+.close:hover{opacity:1}
+
+.plans{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:24px;
+}
+
+.plan{
+    background:#10131a;
+    border:1px solid var(--border);
+    padding:30px;
+    border-radius:16px;
+}
+
+.plan.featured{
+    border:2px solid var(--accent);
+    transform:scale(1.04);
+}
+
+.plan h4{font-size:18px}
+.plan span{font-size:32px;font-weight:800}
+
+.plan ul{
+    margin:20px 0;
+    list-style:none;
+}
+
+.plan li{
+    margin-bottom:10px;
+    font-size:14px;
+}
+
+.plan button{
+    width:100%;
+    padding:12px;
+    border-radius:10px;
+    border:none;
+    background:#fff;
+    font-weight:700;
+}
+
+/* ===== MOBILE ===== */
+@media(max-width:1100px){
+    .slide{display:none}
+    .login{width:100%}
+    .plans{grid-template-columns:1fr}
+}
+</style>
 </head>
 
 <body>
 
-    <!-- TOPBAR -->
-    <div class="topbar">
-        <div class="topbar-left">
-            <img src="{% static 'img/grs-logo.png' %}" alt="GRS">
-            <span>GRS Serviços</span>
-        </div>
+<!-- TOPO -->
+<div class="topbar">
+    <div class="top-actions">
+        <a>Soluções</a>
+        <a>Clientes</a>
+        <a onclick="openPlans()">Planos</a>
+    </div>
+</div>
 
-        <div class="topbar-right">
-            <i class="fa-solid fa-table-cells-large icon-btn"></i>
-            <i class="fa-solid fa-bell icon-btn"></i>
-            <i class="fa-solid fa-gear icon-btn"></i>
+<div class="wrapper">
 
-            <div class="user-box">
-                <i class="fa-solid fa-user"></i>
-                <span>Usuário</span>
-            </div>
+    <div class="slide">
+        <img class="active" src="https://images.unsplash.com/photo-1521790797524-b2497295b8a0?auto=format&fit=crop&w=1400&q=80">
+        <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1400&q=80">
+        <div class="overlay"></div>
+
+        <div class="slide-text">
+            <h1>ERP simples.<br>Feito pra crescer.</h1>
+            <p>Gestão completa, planos claros e suporte de verdade.</p>
         </div>
     </div>
 
-    <!-- MAIN CONTENT -->
-    <div class="main">
-
-        <div class="left-side">
-
-            <div class="slide" style="background-image: url('https://www.grupoats.online/wp-content/uploads/2024/09/servico-de-limpeza-profissional-grupo-ats.png');"></div>
-            <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80');"></div>
-            <div class="slide" style="background-image: url('https://forseguranca.com.br/wp-content/uploads/2024/09/sistema-monitoramento-for-seguranca-campinas.jpg');"></div>
-            <div class="slide" style="background-image: url('https://gestaodesegurancaprivada.com.br/wp-content/uploads/Treinamento-de-Equipes.jpg');"></div>
-            <div class="slide" style="background-image: url('https://cfgsolucoes.com/wp-content/uploads/2021/07/sob-medida.png');"></div>
-
-            <div class="slide-text">Excelência em Limpeza Profissional.</div>
-            <div class="slide-text">Serviços de Manutenção Predial.</div>
-            <div class="slide-text">Monitoramento e Segurança 24h.</div>
-            <div class="slide-text">Equipe Treinada e Especializada.</div>
-            <div class="slide-text">Soluções Corporativas Sob Medida.</div>
+    <div class="login">
+        <div class="logo">
+            <img src="{% static 'img/grs-logo.png' %}">
         </div>
 
-        <div class="right-side">
-            <div class="login-box">
-                <img src="{% static 'img/grs-logo.png' %}" class="logo-mini" alt="GRS">
+        <h2>Acesso ao ERP</h2>
+        <p>Entre para gerenciar sua operação</p>
 
-                <h2>Bem-vindo</h2>
-                <p class="subtitle">Acesse sua área administrativa</p>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="input">
+                <label>Usuário</label>
+                <input type="text" name="username">
+            </div>
+            <div class="input">
+                <label>Senha</label>
+                <input type="password" name="password">
+            </div>
+            <button class="btn">Entrar</button>
+        </form>
+    </div>
 
-                <form method="post">
-                    {% csrf_token %}
-                    <input type="text" name="username" placeholder="Usuário" required>
-                    <input type="password" name="password" placeholder="Senha" required>
-                    <button type="submit">Entrar</button>
-                </form>
+</div>
 
-                <a href="{% url 'password_reset' %}">Esqueceu sua senha?</a>
-                <a href="/solicitar-acesso/">Não tem acesso? Solicitar cadastro</a>
+<!-- MODAL PLANOS -->
+<div class="modal" id="plansModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3>Planos GRS</h3>
+            <span class="close" onclick="closePlans()">✕</span>
+        </div>
+
+        <div class="plans">
+            <div class="plan">
+                <h4>Basic</h4>
+                <span>R$59.00</span>
+                <ul>
+                    <li>CRM</li>
+                    <li>Serviços</li>
+                    <li>Suporte básico</li>
+                </ul>
+                <button>Contratar</button>
+            </div>
+
+            <div class="plan featured">
+                <h4>Pro</h4>
+                <span>R$99.00</span>
+                <ul>
+                    <li>CRM</li>
+                    <li>Vendas</li>
+                    <li>Serviços</li>
+                    <li>Compras</li>
+                    <li>Finanças</li>
+                    <li>Contador</li>
+                    <li>Suporte prioritário</li>
+                </ul>
+                <button>Assinar Pro</button>
+            </div>
+
+            <div class="plan">
+                <h4>Enterprise</h4>
+                <span>Customizar seu ERP</span>
+                <ul>
+                    <li></li>
+                    <li>Consultor</li>
+                    <li>Integrações</li>
+                </ul>
+                <button>Em breve</button>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- JS SLIDES -->
-    <script>
-        let slides = document.querySelectorAll(".slide");
-        let texts = document.querySelectorAll(".slide-text");
-        let index = 0;
-
-        slides[index].classList.add("active");
-        texts[index].classList.add("active");
-
-        setInterval(() => {
-            slides[index].classList.remove("active");
-            texts[index].classList.remove("active");
-
-            index = (index + 1) % slides.length;
-
-            slides[index].classList.add("active");
-            texts[index].classList.add("active");
-
-        }, 3000);
-    </script>
+<script>
+const modal = document.getElementById("plansModal");
+function openPlans(){ modal.classList.add("active"); }
+function closePlans(){ modal.classList.remove("active"); }
+modal.addEventListener("click",e=>{
+    if(e.target === modal) closePlans();
+});
+</script>
 
 </body>
-
 </html>
